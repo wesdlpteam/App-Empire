@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>App Empire — can you beat the giants fairly?</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -189,7 +190,10 @@
   .name-input{font-family:var(--font-display);font-size:1.1rem;font-weight:600;border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;width:100%;max-width:330px;margin:6px 0 4px;background:var(--bg);color:var(--ink)}
   .name-input:focus{outline:none;border-color:var(--violet);background:#fff}
   .introlist{list-style:none;margin:16px 0 4px}
-  .introlist li{display:flex;gap:10px;align-items:flex-start;font-size:.97rem;margin:9px 0;background:var(--bg);border-radius:10px;padding:10px 14px}
+  .introlist li{display:flex;gap:10px;align-items:flex-start;font-size:.97rem;margin:9px 0;background:var(--bg);border-radius:10px;padding:10px 14px;opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s cubic-bezier(.16,1,.3,1)}
+  .introlist li.in{opacity:1;transform:none}
+  #introActions{opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s cubic-bezier(.16,1,.3,1)}
+  #introActions.in{opacity:1;transform:none}
   .introlist .em{flex:none;font-size:1.1rem}
   .region-info{background:#232842;color:#C9CEDF;border-radius:10px;padding:9px 12px;font-size:.78rem;margin-top:8px;line-height:1.45}
   .region-info b{color:#fff}
@@ -283,10 +287,12 @@
           <li><span class="em">🚨</span><span><b>Dark patterns fill your Trouble meter.</b> Inspectors run surprise audits — your Trouble % is exactly your chance of getting busted and fined.</span></li>
           <li><span class="em">🎛️</span><span><b>No spoilers.</b> You only find out what a design does to people <i>after</i> you ship it — same as real app bosses. Read each option like a designer and think it through.</span></li>
         </ul>
-        <p style="margin-top:14px"><b>Name your app:</b></p>
-        <input class="name-input" id="appNameInput" maxlength="16" placeholder="e.g. Loop, Vibe, Yarn…" aria-label="Name your app">
-        <br>
-        <button class="btn" id="startBtn">Let's go →</button>
+        <div id="introActions">
+          <p style="margin-top:14px"><b>Name your app:</b></p>
+          <input class="name-input" id="appNameInput" maxlength="16" placeholder="e.g. Loop, Vibe, Yarn…" aria-label="Name your app">
+          <br>
+          <button class="btn" id="startBtn">Let's go →</button>
+        </div>
       </div>
 
       <!-- QUESTION -->
@@ -775,11 +781,16 @@ function worldReaction(o){
 
 /* ================= FLOW ================= */
 document.body.classList.add("splashed");
+function revealIntro(){
+  const items=[...document.querySelectorAll("#intro .introlist li"), $("introActions")];
+  const instant = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  items.forEach((el,i)=> instant ? el.classList.add("in") : setTimeout(()=>el.classList.add("in"), 250 + i*550));
+}
 $("splashBtn").addEventListener("click", ()=>{
   $("splash").classList.add("gone");
   document.body.classList.remove("splashed");
   setTimeout(()=>{ const s=$("splash"); if(s) s.remove(); }, 700);
-  $("appNameInput").focus();
+  revealIntro();
 });
 
 function initMapFx(){
