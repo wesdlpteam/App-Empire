@@ -1085,7 +1085,8 @@ function startGameProper(){
   renderHUD(); renderMap();
   showRound();
 }
-$("appNameInput").addEventListener("keydown", e=>{ if(e.key==="Enter") $("startBtn").click(); });
+$("appNameInput").addEventListener("keydown", e=>{ if(e.key==="Enter") e.preventDefault(); });
+$("appNameInput").addEventListener("keyup", e=>{ if(e.key==="Enter") $("startBtn").click(); });
 
 function showRound(){
   const r = ROUNDS[S.turn];
