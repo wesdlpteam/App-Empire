@@ -345,7 +345,7 @@
         <div class="fb-block world"><div class="h">🌍 The world reacts</div><ul id="fbWorld"></ul></div>
         <div class="fb-block"><div class="h">💰 This turn</div><p id="fbFin" aria-live="polite"></p></div>
         <div class="fb-block"><div class="h">📱 Inside your app right now</div><div class="phone-wrap" id="fbPhone"></div></div>
-        <div class="fb-block"><div class="h">🧠 The trick explained</div><p id="fbPsych"></p></div>
+        <div class="fb-block"><div class="h">🧠 The psychology behind it</div><p id="fbPsych"></p></div>
         <div class="fb-block"><div class="h">📱 This really happened</div><p id="fbReal"></p></div>
         <button class="btn" id="nextBtn">Next decision →</button>
       </div>
@@ -504,6 +504,7 @@ const CFG = {
   arpu:{none:0.9, dark:3.4, mid:2.3, ethical:1.7},
   costPerUser:0.75, fixedCost:120,
   copyPenalty:0.06, moatBonus:0.038,
+  scaleStart:760, scaleCost:4,
   growHype:0.00135, growWell:0.00032, homeBoost:1.4,
   euFreezeRisk:55, eaWellGate:55,
   auditsAfter:[5,9],
@@ -525,7 +526,7 @@ const REGIONS = {
 const S = {
   turn:0, hype:50, well:50, risk:10,
   cash:CFG.seed, profit:0, users:0, arpuTier:"none",
-  copies:0, moat:0, bailedOut:false, movementFired:false, dpExplained:false, eaOpened:false,
+  copies:0, moat:0, bailedOut:false, movementFired:false, dpExplained:false, eaOpened:false, scaleFired:false,
   home:"anz",
   adoption:Object.fromEntries(Object.keys(REGIONS).map(k=>[k, 0])),
   log:[], news:[],
@@ -709,7 +710,7 @@ const ROUNDS = [
 /* ================= HELPERS ================= */
 const $ = id => document.getElementById(id);
 const clamp = (n,lo=0,hi=100) => Math.max(lo, Math.min(hi, n));
-const fmtU = m => m>=1000 ? (m/1000).toFixed(2)+"B" : m>=9.5 ? Math.round(m)+"M" : Math.max(0,m).toFixed(1)+"M";
+const fmtU = m => m>=1000 ? (m/1000).toFixed(2)+"B" : m>=9.5 ? Math.floor(m)+"M" : Math.max(0,m).toFixed(1)+"M"; // floor so 799.6M never show as "800M" while users goal unmet
 const fmt$ = m => (m<0?"−$":"$")+Math.abs(Math.round(m))+"M";
 
 function lerpColor(t){
@@ -786,7 +787,7 @@ function simulateTurn(){
     if(k==="eu" && euFrozen()) return;
     let gripEff = clamp(r.grip + S.copies*CFG.copyPenalty - S.moat*CFG.moatBonus, 0.10, 0.93);
     let g = base * r.open * (1-gripEff) * (0.92 - S.adoption[k]);
-    if(k==="ea" && !eaOpen() && k!==S.home) g *= 0.15;
+    if(k==="ea" && !eaOpen() && k!==S.home) g = 0;
     if(k===S.home && S.turn<=3) g *= CFG.homeBoost;
     const churn = S.adoption[k] * Math.max(0,(48-S.well)) * 0.0035;
     const net = g - churn;
@@ -800,7 +801,7 @@ function simulateTurn(){
 
   S.users = totalUsers();
   const rev = S.users * CFG.arpu[S.arpuTier];
-  const cost = CFG.fixedCost + S.users * CFG.costPerUser;
+  const cost = CFG.fixedCost + S.users * CFG.costPerUser + Math.max(0, S.users - CFG.scaleStart) * CFG.scaleCost;
   S.profit = rev - cost;
   S.cash += S.profit;
   return {deltaUsers: S.users-before, bestGain, rev, cost, milestones};
@@ -837,7 +838,6 @@ function worldReaction(o){
     Object.keys(S.adoption).forEach(k=>{ if(!(k==="eu"&&euFrozen())) S.adoption[k]=clamp(S.adoption[k]+0.03,0,0.92); });
     lines.push(`📈 <b>#SwitchTo${name.replace(/\s/g,'')} goes viral!</b> People quitting other apps flood in everywhere.`);
   }
-  if(S.well<40) lines.push(`📰 Bad press: researchers say ${name} is harming teens. Users are quitting.`);
   return lines;
 }
 
@@ -1081,7 +1081,7 @@ function startGameProper(){
   $("regionList").style.display="block";
   $("ticker").style.display="block";
   S.users = totalUsers();
-  pushNews(`🚀 <b>${n} launches in ${REGIONS[S.home].city}.</b> 1.2M locals download it in week one. Tech press: "Another app promising to be different. They always say that."`);
+  pushNews(`🚀 <b>${n} launches in ${REGIONS[S.home].city}.</b> 1.2M locals download it in week one — your starting user base. Launch buzz sets your Hype at 50/100, and regulators open a file on every new social app: Trouble starts at 10%. Tech press: "Another app promising to be different. They always say that."`);
   renderHUD(); renderMap();
   showRound();
 }
@@ -1122,8 +1122,10 @@ function choose(o){
   if(o.arpu) S.arpuTier = o.arpu;
   if(o.cost) S.cash -= o.cost;
 
+  const usersBefore = totalUsers();
   const reactLines = worldReaction(o);
   const sim = simulateTurn();
+  sim.deltaUsers = S.users - usersBefore; // include worldReaction adoption bumps (viral movement) so shown delta match totals
   sim.milestones.forEach(m=>{
     const rn = REGIONS[m.k].name;
     if(m.level===25){
@@ -1140,6 +1142,13 @@ function choose(o){
   if([1,3,5,7].includes(S.turn) && Math.random()*100 < 25 + S.hype/2){
     sim.deltaUsers += celebPost();
   }
+  if(!S.scaleFired && S.users > CFG.scaleStart){
+    S.scaleFired = true;
+    reactLines.push(`🏗️ <b>${appName()} is now planet-scale.</b> Past ${CFG.scaleStart}M users, data centres, moderators and lawyers in every country get expensive — every extra million users now costs serious money. Weak money models start to crack here.`);
+  }
+  if(S.well<40) reactLines.push(`📰 Bad press: researchers say ${appName()} is harming teens. ${sim.deltaUsers>=0
+    ? "Users are quitting over it — for now, hype is still pulling in more new people than you're losing."
+    : "Users are quitting faster than new ones arrive."}`);
 
   S.log.push({choice:o.t, tag:o.tag, n:S.turn+1});
   pushNews(`<b>${appName()}</b> ships "${o.t}". ${o.tag==="dark"?"Critics call it a dark pattern.":o.tag==="ethical"?"Design fans applaud.":"The world shrugs."}`);
@@ -1163,7 +1172,7 @@ function choose(o){
   $("fbTitle").textContent = o.t;
   $("fbWorld").innerHTML = reactLines.map(l=>`<li>${l}</li>`).join("");
   const bg = sim.bestGain.k ? ` Fastest growth: <b>${REGIONS[sim.bestGain.k].name}</b>.` : "";
-  $("fbFin").innerHTML = `You now have <b>${fmtU(S.users)}</b> users (${sim.deltaUsers>=0?"+":""}${fmtU(Math.abs(sim.deltaUsers))}). You ${S.profit>=0?"made":"lost"} <b style="color:${S.profit>=0?'var(--teal-ink)':'var(--red-ink)'}">${fmt$(Math.abs(S.profit))}</b> this turn.${bg}`;
+  $("fbFin").innerHTML = `You now have <b>${fmtU(S.users)}</b> users (${sim.deltaUsers>=0?"+":"−"}${fmtU(Math.abs(sim.deltaUsers))}). You ${S.profit>=0?"made":"lost"} <b style="color:${S.profit>=0?'var(--teal-ink)':'var(--red-ink)'}">${fmt$(Math.abs(S.profit))}</b> this turn.${bg}`;
   $("fbPsych").textContent = o.psych;
   $("fbReal").textContent = o.real;
   renderPhone("fbPhone", S.turn+1);
