@@ -193,10 +193,59 @@
   .introlist .em{flex:none;font-size:1.1rem}
   .region-info{background:#232842;color:#C9CEDF;border-radius:10px;padding:9px 12px;font-size:.78rem;margin-top:8px;line-height:1.45}
   .region-info b{color:#fff}
+  /* ---------- title screen ---------- */
+  #splash{position:fixed;inset:0;z-index:90;background:radial-gradient(120% 100% at 50% 18%, #232B52 0%, #12162E 55%, #0B0E1F 100%);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity .6s ease}
+  #splash.gone{opacity:0;pointer-events:none}
+  .sp-art{position:absolute;inset:0;width:100%;height:100%}
+  .sp-arc{fill:none;stroke:#5B4BEB;stroke-width:1.1;stroke-dasharray:3 7;stroke-linecap:round;opacity:.5;animation:dashflow 1.3s linear infinite}
+  .sp-node{animation:nodepulse 2.6s ease-in-out infinite}
+  @keyframes nodepulse{0%,100%{opacity:.4}50%{opacity:1}}
+  .sp-ping{fill:none;stroke:#FFD34D;stroke-width:1.2;transform-box:fill-box;transform-origin:center;animation:hqping 2.4s ease-out infinite}
+  .sp-inner{position:relative;text-align:center;padding:24px;max-width:760px}
+  .sp-kicker{color:#8B93AE;font-weight:600;font-size:.92rem;margin-bottom:16px}
+  .sp-title{font-family:var(--font-display);font-weight:700;font-size:clamp(3rem,11vw,5.8rem);line-height:1.02;color:#fff;text-wrap:balance;text-shadow:0 0 70px rgba(126,231,255,.28)}
+  .sp-title span{color:#B7A9FF}
+  .sp-tag{font-family:var(--font-display);color:#7EE7FF;font-size:clamp(1.1rem,3.2vw,1.5rem);font-weight:500;margin-top:12px}
+  .sp-sub{color:#9AA1BC;font-size:.98rem;margin:18px auto 28px;max-width:46ch;line-height:1.65}
+  .sp-btn{background:var(--violet);color:#fff;border:none;border-radius:12px;font-weight:700;font-family:var(--font-display);font-size:1.05rem;padding:15px 36px;cursor:pointer;transition:transform .15s,box-shadow .2s;box-shadow:0 8px 30px rgba(91,75,235,.45)}
+  .sp-btn:hover{transform:translateY(-2px);box-shadow:0 12px 42px rgba(91,75,235,.6)}
+  .sp-btn:focus-visible{outline:3px solid #7EE7FF;outline-offset:3px}
+  body.splashed{overflow:hidden}
   @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
 </style>
 </head>
 <body>
+<section id="splash" aria-label="Title screen">
+  <svg class="sp-art" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs><pattern id="spdots" width="26" height="26" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#252C52"/></pattern></defs>
+    <rect width="800" height="500" fill="url(#spdots)"/>
+    <circle cx="400" cy="250" r="130" fill="none" stroke="#242C55" stroke-width="1"/>
+    <circle cx="400" cy="250" r="205" fill="none" stroke="#20274A" stroke-width="1"/>
+    <circle cx="400" cy="250" r="290" fill="none" stroke="#1B2140" stroke-width="1"/>
+    <path class="sp-arc" d="M 170 360 Q 240 180 300 120" style="animation-delay:0s"/>
+    <path class="sp-arc" d="M 170 360 Q 330 40 480 90" style="animation-delay:.2s"/>
+    <path class="sp-arc" d="M 170 360 Q 420 120 620 140" style="animation-delay:.4s"/>
+    <path class="sp-arc" d="M 170 360 Q 460 420 660 380" style="animation-delay:.6s"/>
+    <path class="sp-arc" d="M 170 360 Q 470 280 700 230" style="animation-delay:.8s"/>
+    <path class="sp-arc" d="M 170 360 Q 280 430 360 400" style="animation-delay:1s"/>
+    <circle class="sp-node" cx="300" cy="120" r="3.5" fill="#B7A9FF"/>
+    <circle class="sp-node" cx="480" cy="90"  r="3"   fill="#7EE7FF" style="animation-delay:.5s"/>
+    <circle class="sp-node" cx="620" cy="140" r="4"   fill="#7EE7FF" style="animation-delay:1.1s"/>
+    <circle class="sp-node" cx="700" cy="230" r="3"   fill="#B7A9FF" style="animation-delay:.8s"/>
+    <circle class="sp-node" cx="660" cy="380" r="3.5" fill="#7EE7FF" style="animation-delay:1.6s"/>
+    <circle class="sp-node" cx="360" cy="400" r="3"   fill="#B7A9FF" style="animation-delay:.3s"/>
+    <circle class="sp-node" cx="200" cy="200" r="2.5" fill="#B7A9FF" style="animation-delay:1.9s"/>
+    <circle class="sp-ping" cx="170" cy="360" r="12"/>
+    <circle cx="170" cy="360" r="4" fill="#FFD34D" stroke="#0E1120" stroke-width="1"/>
+  </svg>
+  <div class="sp-inner">
+    <div class="sp-kicker">Nine decisions. One conscience.</div>
+    <h1 class="sp-title">App <span>Empire</span></h1>
+    <p class="sp-tag">Can you beat the giants — fairly?</p>
+    <p class="sp-sub">Run your own social media startup with $400M and a clean conscience. Outgrow TikTok and Instagram without a single dark pattern… if you can.</p>
+    <button class="sp-btn" id="splashBtn">Start your empire →</button>
+  </div>
+</section>
 <div class="wrap">
 
   <div class="topbar">
@@ -725,6 +774,14 @@ function worldReaction(o){
 }
 
 /* ================= FLOW ================= */
+document.body.classList.add("splashed");
+$("splashBtn").addEventListener("click", ()=>{
+  $("splash").classList.add("gone");
+  document.body.classList.remove("splashed");
+  setTimeout(()=>{ const s=$("splash"); if(s) s.remove(); }, 700);
+  $("appNameInput").focus();
+});
+
 function initMapFx(){
   const svg = document.querySelector(".map-panel svg");
   const NS = "http://www.w3.org/2000/svg";
