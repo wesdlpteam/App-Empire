@@ -201,6 +201,17 @@
   .tut-dots{display:flex;gap:6px}
   .tut-dots span{width:8px;height:8px;border-radius:50%;background:var(--line)}
   .tut-dots span.on{background:var(--violet)}
+  .logo-lab-card{max-width:560px}
+  .logo-chip{display:inline-flex;align-items:center;justify-content:center;color:#fff;vertical-align:-3px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+  .logo-timer{font-family:var(--font-display);font-weight:700;font-size:1.05rem}
+  .logo-timer.low{color:var(--red-ink)}
+  .lab-h{font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin-top:12px}
+  .swatches{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+  .swatch{width:34px;height:34px;border-radius:10px;border:2px solid transparent;cursor:pointer}
+  .swatch.on{border-color:var(--ink)}
+  .sym-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:8px 0}
+  .sym{font-size:1.2rem;background:var(--bg);border:2px solid transparent;border-radius:10px;padding:6px 0;cursor:pointer;font-family:var(--font-display);font-weight:700}
+  .sym.on{border-color:var(--violet);background:var(--violet-soft)}
   .introlist .em{flex:none;font-size:1.1rem}
   .region-info{background:#232842;color:#C9CEDF;border-radius:10px;padding:9px 12px;font-size:.78rem;margin-top:8px;line-height:1.45}
   .region-info b{color:#fff}
@@ -441,6 +452,22 @@
       <div class="tut-dots" id="tutDots"></div>
       <button class="btn" id="tutNext">Next →</button>
     </div>
+  </div>
+</div>
+
+<div class="tut-overlay" id="logoLab" role="dialog" aria-modal="true" aria-label="Logo designer" style="display:none">
+  <div class="tut-card logo-lab-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div class="tut-step" id="logoLabTitle" style="margin-bottom:0">Design your logo</div>
+      <div class="logo-timer" id="logoTimer">⏱ 2:00</div>
+    </div>
+    <p style="font-size:.85rem;color:var(--ink-soft);margin-top:6px">Two minutes on the clock — real startups ship on deadlines. Pick a background and a symbol.</p>
+    <div style="display:flex;justify-content:center;margin:14px 0" id="logoPrev"></div>
+    <div class="lab-h">Background</div>
+    <div class="swatches" id="logoSwatches"></div>
+    <div class="lab-h">Symbol</div>
+    <div class="sym-grid" id="logoSyms"></div>
+    <button class="btn" id="logoLaunch" style="width:100%">Launch 🚀</button>
   </div>
 </div>
 
@@ -806,20 +833,57 @@ function showTutStep(){
   $("tutStep").textContent=`How to play — ${tutI+1} of ${TUT_STEPS.length}`;
   $("tutBody").innerHTML=`<span class="em">${s.em}</span><b>${s.h}.</b> ${s.t}`;
   $("tutDots").innerHTML=TUT_STEPS.map((_,i)=>`<span class="${i<=tutI?'on':''}"></span>`).join("");
-  $("tutNext").textContent = tutI===TUT_STEPS.length-1 ? "Ready to play ✓" : "Next →";
+  $("tutNext").textContent = tutI===TUT_STEPS.length-1 ? "Next: design your logo →" : "Next →";
 }
 $("tutNext").addEventListener("click", ()=>{
   if(tutI < TUT_STEPS.length-1){ tutI++; showTutStep(); }
-  else { $("tut").style.display="none"; $("appNameInput").focus(); }
+  else { $("tut").style.display="none"; openLogoLab(); }
 });
 $("splashBtn").addEventListener("click", ()=>{
   $("splash").classList.add("gone");
   document.body.classList.remove("splashed");
   setTimeout(()=>{ const s=$("splash"); if(s) s.remove(); }, 700);
-  tutI=0; showTutStep();
-  $("tut").style.display="flex";
-  $("tutNext").focus();
+  $("appNameInput").focus();
 });
+
+/* ---- logo designer ---- */
+const LOGO_BGS=["linear-gradient(135deg,#5B4BEB,#7EE7FF)","linear-gradient(135deg,#E85D9E,#E8930C)","linear-gradient(135deg,#0E9E8A,#3D74D9)","linear-gradient(135deg,#171A26,#5B4BEB)","#5B4BEB","#0E9E8A","#D6455A","#E8930C","#171A26","#3D74D9","#E85D9E","#3DA556"];
+const LOGO_SYMS=["LETTER","🚀","🔥","💬","🌊","⚡","🌈","🦄","🐨","🎧","🎮","📸","🌏","🫶","😎","🐙","🎨","🏄","⭐","👾","🍩","🦘","🌸","🍉"];
+const LOGO={bg:LOGO_BGS[0], sym:"LETTER"};
+function logoChipHTML(size){
+  const glyph = LOGO.sym==="LETTER"
+    ? `<b style="font-size:${Math.round(size*0.55)}px;font-family:var(--font-display)">${appName().charAt(0).toUpperCase()}</b>`
+    : `<span style="font-size:${Math.round(size*0.58)}px;line-height:1">${LOGO.sym}</span>`;
+  return `<span class="logo-chip" style="width:${size}px;height:${size}px;border-radius:${Math.round(size*0.24)}px;background:${LOGO.bg}">${glyph}</span>`;
+}
+function renderLogoUI(){
+  $("logoPrev").innerHTML = logoChipHTML(150);
+  $("logoSwatches").innerHTML = LOGO_BGS.map((bg,i)=>`<button type="button" class="swatch ${bg===LOGO.bg?'on':''}" data-i="${i}" style="background:${bg}" aria-label="Background ${i+1}"></button>`).join("");
+  $("logoSyms").innerHTML = LOGO_SYMS.map(s=>`<button type="button" class="sym ${s===LOGO.sym?'on':''}" data-s="${s}" aria-label="${s==='LETTER'?'First letter of your app name':s}">${s==="LETTER"?appName().charAt(0).toUpperCase():s}</button>`).join("");
+  document.querySelectorAll("#logoSwatches .swatch").forEach(b=>b.addEventListener("click",()=>{ LOGO.bg=LOGO_BGS[+b.dataset.i]; renderLogoUI(); }));
+  document.querySelectorAll("#logoSyms .sym").forEach(b=>b.addEventListener("click",()=>{ LOGO.sym=b.dataset.s; renderLogoUI(); }));
+}
+let logoT=null, logoLeft=120;
+function logoTick(){
+  const m=Math.floor(logoLeft/60), s=logoLeft%60, el=$("logoTimer");
+  el.textContent=`⏱ ${m}:${String(s).padStart(2,"0")}`;
+  el.classList.toggle("low", logoLeft<=20);
+}
+function openLogoLab(){
+  $("logoLabTitle").textContent=`Design the ${appName()} logo`;
+  $("logoLaunch").textContent=`Launch ${appName()} 🚀`;
+  renderLogoUI();
+  logoLeft=120; logoTick();
+  logoT=setInterval(()=>{ logoLeft--; logoTick(); if(logoLeft<=0) finishLogoLab(true); }, 1000);
+  $("logoLab").style.display="flex";
+}
+function finishLogoLab(auto){
+  clearInterval(logoT);
+  $("logoLab").style.display="none";
+  startGameProper();
+  if(auto) pushNews(`⏰ Deadline hit — the ${appName()} logo ships as-is. Welcome to startup life.`);
+}
+$("logoLaunch").addEventListener("click", ()=>finishLogoLab(false));
 
 function initMapFx(){
   const svg = document.querySelector(".map-panel svg");
@@ -936,7 +1000,13 @@ function celebPost(){
 $("startBtn").addEventListener("click", ()=>{
   const n = $("appNameInput").value.replace(/[<>&"']/g,"").trim().slice(0,16) || "Loop";
   $("mapAppName").dataset.name = n;
-  $("mapAppName").textContent = n+" around the world";
+  tutI=0; showTutStep();
+  $("tut").style.display="flex";
+  $("tutNext").focus();
+});
+function startGameProper(){
+  const n = appName();
+  $("mapAppName").innerHTML = logoChipHTML(16) + " " + n + " around the world";
   S.adoption[S.home] = 1.2 / REGIONS[S.home].pop;
   initMapFx();
   $("intro").classList.add("hidden");
@@ -948,7 +1018,7 @@ $("startBtn").addEventListener("click", ()=>{
   pushNews(`🚀 <b>${n} launches in ${REGIONS[S.home].city}.</b> Tech press: "Another app promising to be different. They always say that."`);
   renderHUD(); renderMap();
   showRound();
-});
+}
 $("appNameInput").addEventListener("keydown", e=>{ if(e.key==="Enter") $("startBtn").click(); });
 
 function showRound(){
@@ -1164,7 +1234,7 @@ function earlyGameOver(){
   $("qCard").classList.add("hidden");$("fbCard").classList.add("hidden");$("auditCard").classList.add("hidden");
   $("qtrPill").textContent="Game over";
   $("verdict").className="verdict shutdown";
-  $("verdictTitle").textContent=`${appName()}: out of money`;
+  $("verdictTitle").innerHTML=logoChipHTML(34)+` ${appName()}: out of money`;
   $("fUsers").textContent=fmtU(S.users); $("fProfit").textContent=fmt$(S.profit); $("fWell").textContent=Math.round(S.well);
   $("verdictBody").textContent=`You ran out of money twice, and nobody would rescue you again. The giants didn't even notice you go. Where did the money leak — fines, low earnings, or growing too slowly?`;
   fillLog(); $("results").classList.remove("hidden");
@@ -1200,7 +1270,7 @@ function finish(){
     title=`${name}: didn't make it — this time`;
     body=`Users ${fmtU(S.users)}, money ${fmt$(S.profit)}/turn, Wellbeing ${Math.round(S.well)} — the three targets didn't line up. The game is genuinely stacked against you. That's the point. What would you do differently from Decision 1?`;
   }
-  $("verdictTitle").textContent=title;
+  $("verdictTitle").innerHTML=logoChipHTML(34)+" "+title;
   $("verdictBody").textContent=body;
   fillLog();
   $("qCard").classList.add("hidden");$("fbCard").classList.add("hidden");$("auditCard").classList.add("hidden");
