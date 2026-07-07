@@ -212,6 +212,28 @@
   .sym-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:8px 0}
   .sym{font-size:1.2rem;background:var(--bg);border:2px solid transparent;border-radius:10px;padding:6px 0;cursor:pointer;font-family:var(--font-display);font-weight:700}
   .sym.on{border-color:var(--violet);background:var(--violet-soft)}
+  /* ---------- live app preview phone ---------- */
+  .phone-wrap{display:flex;justify-content:center;margin-top:8px}
+  .phone{width:252px;background:#171A26;border-radius:26px;padding:8px;flex:none}
+  .ph-screen{background:#F7F8FC;border-radius:20px;padding:10px 10px 12px;font-size:.68rem;line-height:1.4;color:var(--ink);display:flex;flex-direction:column;gap:7px}
+  .ph-status{display:flex;justify-content:space-between;font-weight:700;font-size:.6rem;color:var(--ink-soft)}
+  .ph-notif{background:#fff;border:1px solid var(--line);border-radius:9px;padding:6px 9px;font-weight:600}
+  .ph-head{display:flex;align-items:center;gap:6px;font-size:.74rem}
+  .ph-feedlbl{margin-left:auto;font-size:.6rem;color:var(--ink-soft);font-weight:700;text-align:right}
+  .ph-banner{border-radius:9px;padding:6px 9px;font-weight:700}
+  .ph-post{background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 9px}
+  .ph-post p{margin:2px 0 4px}
+  .ph-likes{color:var(--ink-soft);font-weight:600}
+  .ph-flag{display:block;background:var(--amber-soft);color:var(--amber-ink);border-radius:6px;padding:3px 6px;font-size:.6rem;font-weight:700;margin-top:4px}
+  .ph-flag.ph-calm{background:var(--teal-soft);color:var(--teal-ink)}
+  .ph-ad{background:#fff;border:1.5px dashed var(--line);border-radius:10px;padding:6px 9px}
+  .ph-dim{display:block;color:var(--ink-soft);font-size:.6rem;font-weight:500}
+  .ph-end{text-align:center;border-radius:9px;padding:6px;font-weight:700;background:#fff;border:1px solid var(--line)}
+  .ph-row{background:#fff;border:1px solid var(--line);border-radius:9px;padding:5px 9px;font-size:.62rem;font-weight:600}
+  .ph-hot{background:var(--red-soft) !important;border-color:var(--red-soft) !important;color:var(--red-ink)}
+  .ph-calm{background:var(--teal-soft) !important;border-color:var(--teal-soft) !important;color:var(--teal-ink)}
+  .justchanged{outline:2px solid var(--violet);animation:phpulse 1.6s ease-out}
+  @keyframes phpulse{0%{box-shadow:0 0 0 0 rgba(91,75,235,.5)}100%{box-shadow:0 0 0 9px rgba(91,75,235,0)}}
   .introlist .em{flex:none;font-size:1.1rem}
   .region-info{background:#232842;color:#C9CEDF;border-radius:10px;padding:9px 12px;font-size:.78rem;margin-top:8px;line-height:1.45}
   .region-info b{color:#fff}
@@ -322,6 +344,7 @@
         <h2 id="fbTitle"></h2>
         <div class="fb-block world"><div class="h">🌍 The world reacts</div><ul id="fbWorld"></ul></div>
         <div class="fb-block"><div class="h">💰 This turn</div><p id="fbFin" aria-live="polite"></p></div>
+        <div class="fb-block"><div class="h">📱 Inside your app right now</div><div class="phone-wrap" id="fbPhone"></div></div>
         <div class="fb-block"><div class="h">🧠 The trick explained</div><p id="fbPsych"></p></div>
         <div class="fb-block"><div class="h">📱 This really happened</div><p id="fbReal"></p></div>
         <button class="btn" id="nextBtn">Next decision →</button>
@@ -353,6 +376,7 @@
         <div class="card">
           <h2>📋 Your app's design blueprint</h2>
           <p class="bp-intro">This is the app you actually built, decision by decision. Screenshot it — it's your starting spec for designing your own Ethical Social Media App. Keep the fair-play rows. Rethink the rest.</p>
+          <div class="phone-wrap" id="finalPhone"></div>
           <div id="choiceLog" style="margin-top:6px"></div>
           <h2 style="margin-top:22px">Talk about it</h2>
           <ol class="qs">
@@ -997,6 +1021,48 @@ function celebPost(){
   return bump;
 }
 
+/* ---- live app preview ---- */
+function choiceTag(n){ const l=S.log.find(x=>x.n===n); return l?l.tag:null; }
+function renderPhone(id, hl){
+  const t=choiceTag, H=n=> hl===n?" justchanged":"";
+  let notif="";
+  if(t(3)==="dark") notif=`<div class="ph-notif ph-hot${H(3)}">🔔 3 people viewed your profile 👀 <b>· 17 more</b></div>`;
+  else if(t(3)==="mid") notif=`<div class="ph-notif${H(3)}">🔔 Emma replied to your comment</div>`;
+  else if(t(3)==="ethical") notif=`<div class="ph-notif ph-calm${H(3)}">🔔 Your daily digest is ready · 6:00pm</div>`;
+  const feedLbl = t(1)==="dark"?`<span class="ph-hot${H(1)}" style="padding:2px 6px;border-radius:5px">😡 outrage-ranked</span>`
+    : t(1)==="mid"?`<span class="${H(1)}">For You ▾ <br>(switch: newest)</span>`
+    : t(1)==="ethical"?`<span class="ph-calm${H(1)}" style="padding:2px 6px;border-radius:5px">newest first</span>`:`<span>feed</span>`;
+  const streak = t(4)==="dark"?`<div class="ph-banner ph-hot${H(4)}">🔥 47-day streak — 3h left or you LOSE it!</div>`
+    : t(4)==="mid"?`<div class="ph-banner ph-calm${H(4)}">🎯 Your own goal: 3 posts/week ✓ (pause anytime)</div>`:"";
+  const likes = t(5)==="dark"?`❤️ 1.2K · 🎉 · 💬 89`
+    : t(5)==="mid"?`❤️ <i>only you see the count</i> · 💬 89`
+    : t(5)==="ethical"?`💬 89 comments`:`❤️ · 💬`;
+  const ad = t(2)==="dark"?`<div class="ph-ad${H(2)}">Sponsored 👁 <b>Those shoes you looked at yesterday</b><span class="ph-dim">targeted from your tracked activity</span></div>`
+    : t(2)==="mid"?`<div class="ph-ad${H(2)}">Ad · <b>Wetsuit sale 🌊</b><span class="ph-dim">matched to this post, not to you</span></div>`
+    : t(2)==="ethical"?`<div class="ph-ad ph-calm${H(2)}">💜 Supporter: $3/month — no tracking, barely any ads</div>`:"";
+  let fake="";
+  if(t(7)==="dark") fake=`<div class="ph-post${H(7)}"><b>@viral_now</b><p>SHOCKING: schools to ban weekends?! 😱</p><span class="ph-flag ph-hot" style="display:inline-block">🔁 12K shares · trending #1</span></div>`;
+  else if(t(7)==="mid") fake=`<div class="ph-post${H(7)}"><b>@viral_now</b><p>SHOCKING: schools to ban weekends?! 😱</p><span class="ph-flag">⚠️ Fact-check: false — shown to fewer people</span></div>`;
+  else if(t(7)==="ethical") fake=`<div class="ph-post${H(7)}"><b>@viral_now</b><p>SHOCKING: schools to ban weekends?! 😱</p><span class="ph-flag ph-calm">🔁 Share tapped → "Read it first?"</span></div>`;
+  const end = t(6)==="dark"?`<div class="ph-end ph-hot${H(6)}">▶ next video in 0s · the feed never ends ∞</div>`
+    : t(6)==="mid"?`<div class="ph-end${H(6)}">▶ next in 5s ▓▓░ <b>[ STOP ]</b></div>`
+    : t(6)==="ethical"?`<div class="ph-end ph-calm${H(6)}">✓ You're all caught up — see you tomorrow</div>`:"";
+  const priv = t(8)==="dark"?`<div class="ph-row ph-hot${H(8)}">🌐 Public profile · 📍 location ON · contacts synced</div>`
+    : t(8)==="mid"?`<div class="ph-row${H(8)}">🔒 Setup asks you plainly: "Who can see your posts?"</div>`
+    : t(8)==="ethical"?`<div class="ph-row ph-calm${H(8)}">🔒 Friends-only · location off · minimal data kept</div>`:"";
+  const time = t(9)==="dark"?`<div class="ph-row ph-hot${H(9)}">⏱ 3h 42m today · no limits, ever</div>`
+    : t(9)==="mid"?`<div class="ph-row${H(9)}">⏱ Break reminders available (off by default)</div>`
+    : t(9)==="ethical"?`<div class="ph-row ph-calm${H(9)}">🌙 Wind-down 9pm · 60-min default for teens</div>`:"";
+  $(id).innerHTML=`<div class="phone"><div class="ph-screen">
+    <div class="ph-status"><span>9:41</span><span>${appName()}</span><span>📶 🔋</span></div>
+    ${notif}
+    <div class="ph-head">${logoChipHTML(20)} <b>${appName()}</b><span class="ph-feedlbl">${feedLbl}</span></div>
+    ${streak}
+    <div class="ph-post"><b>@maya.waves</b><p>caught the best wave of my life today 🌊</p><span class="ph-likes${H(5)}">${likes}</span></div>
+    ${ad}${fake}${end}${priv}${time}
+  </div></div>`;
+}
+
 $("startBtn").addEventListener("click", ()=>{
   const n = $("appNameInput").value.replace(/[<>&"']/g,"").trim().slice(0,16) || "Loop";
   $("mapAppName").dataset.name = n;
@@ -1099,6 +1165,7 @@ function choose(o){
   $("fbFin").innerHTML = `You now have <b>${fmtU(S.users)}</b> users (${sim.deltaUsers>=0?"+":""}${fmtU(Math.abs(sim.deltaUsers))}). You ${S.profit>=0?"made":"lost"} <b style="color:${S.profit>=0?'var(--teal-ink)':'var(--red-ink)'}">${fmt$(Math.abs(S.profit))}</b> this turn.${bg}`;
   $("fbPsych").textContent = o.psych;
   $("fbReal").textContent = o.real;
+  renderPhone("fbPhone", S.turn+1);
 
   $("qCard").classList.add("hidden");
   $("fbCard").classList.remove("hidden");
@@ -1281,6 +1348,7 @@ function finish(){
 const AREAS=["The feed","Money","Notifications","Streaks","Likes","Endless content","Fake news","Privacy","Screen time"];
 function fillLog(){
   $("choiceLog").innerHTML = S.log.map(l=>`<div class="log-row"><span class="log-dot ${l.tag}"></span><span class="log-area">${AREAS[l.n-1]||"Decision "+l.n}</span><span>${l.choice}</span><span class="log-tag ${l.tag}">${l.tag==="dark"?"dark pattern":l.tag==="mid"?"middle ground":"fair play"}</span></div>`).join("");
+  renderPhone("finalPhone", 0);
 }
 </script>
 </body>
