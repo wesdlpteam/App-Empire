@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Empire — can you beat the giants fairly?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF0F5; --panel:#FFFFFF; --ink:#171A26; --ink-soft:#5A6072; --line:#DDE1EA;
+    --violet:#5B4BEB; --violet-soft:#EEEBFF;
+    --amber:#E8930C; --amber-soft:#FFF3DD;
+    --teal:#0E9E8A; --teal-soft:#DEF5F1;
+    --red:#D6455A; --red-soft:#FBE7EA;
+    --teal-ink:#0B6E5F; --amber-ink:#8F5800; --red-ink:#AC2540;
+    --ocean:#1B2033;
+    --radius:14px;
+    --font-display:'Space Grotesk','Segoe UI',system-ui,sans-serif;
+    --font-body:'Inter','Segoe UI',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+  .wrap{max-width:1120px;margin:0 auto;padding:18px 18px 60px}
+  .hidden{display:none !important}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0 14px;flex-wrap:wrap}
+  .brand{font-family:var(--font-display);font-weight:700;font-size:1rem}
+  .brand span{color:var(--violet)}
+  .qtr-pill{font-size:.78rem;font-weight:700;color:#fff;background:var(--ink);padding:6px 14px;border-radius:999px}
+
+  /* ---------- HUD ---------- */
+  .hud{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
+  @media(max-width:820px){.hud{grid-template-columns:repeat(3,1fr)}}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
+  .stat .l{font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
+  .stat .v{font-family:var(--font-display);font-weight:700;font-size:1.15rem}
+  .stat .d{font-size:.7rem;font-weight:700}
+  .d.up{color:var(--teal-ink)}.d.down{color:var(--red-ink)}
+  .stat .hint{font-size:.68rem;color:var(--ink-soft);line-height:1.2;margin-top:1px}
+  .stat.users .v{color:var(--violet)}
+  .stat.cash .v{color:var(--amber-ink)}
+  .stat.risk.hot{animation:riskpulse 1.4s ease-in-out infinite;border-color:var(--red)}
+  @keyframes riskpulse{0%,100%{box-shadow:0 0 0 0 rgba(214,69,90,0)}50%{box-shadow:0 0 0 4px rgba(214,69,90,.16)}}
+
+  .victory{display:flex;gap:8px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 12px;margin-bottom:14px;align-items:center}
+  .victory .vt{font-size:.68rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-right:4px}
+  .cond{display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;border-radius:999px;padding:4px 12px;background:var(--bg);color:var(--ink-soft)}
+  .cond.met{background:var(--teal-soft);color:var(--teal-ink)}
+  .cond .tick{font-weight:800}
+
+  .stage{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
+  @media(max-width:900px){.stage{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px 24px 22px}
+  .eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--violet);margin-bottom:8px}
+  h1,h2{font-family:var(--font-display);line-height:1.15}
+  h1{font-size:clamp(1.55rem,4vw,2.25rem);font-weight:700;margin-bottom:12px}
+  h2{font-size:1.28rem;font-weight:700;margin-bottom:10px}
+  .quote{border-left:3px solid var(--line);padding:8px 14px;margin:12px 0;color:var(--ink-soft);font-style:italic;font-size:.95rem}
+  .quote b{color:var(--ink);font-style:normal;display:block;font-size:.75rem;letter-spacing:.04em;text-transform:uppercase;margin-bottom:2px}
+
+  .opts{display:grid;gap:10px;margin-top:6px}
+  .opt{text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;transition:border-color .15s,transform .1s,background .15s}
+  .opt:hover{border-color:var(--violet);background:#F6F5FF;transform:translateY(-1px)}
+  .opt .toprow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:3px;flex-wrap:wrap}
+  .opt .t{font-weight:700;font-size:.98rem}
+  .opt .d{font-size:.88rem;color:var(--ink-soft)}
+  .payoff{display:flex;gap:5px;flex:none}
+  .pchip{font-size:.7rem;font-weight:800;border-radius:6px;padding:3px 8px;background:var(--bg);border:1px solid var(--line)}
+  .pchip.hype{background:var(--violet-soft);color:var(--violet);border:none}
+  .pchip.well-up{background:var(--teal-soft);color:var(--teal-ink);border:none}
+  .pchip.well-dn{background:var(--red-soft);color:var(--red-ink);border:none}
+  .pchip.risk-hi{background:var(--red-soft);color:var(--red-ink);border:none}
+  .pchip.risk-md{background:var(--amber-soft);color:var(--amber-ink);border:none}
+  .pchip.risk-lo{background:var(--teal-soft);color:var(--teal-ink);border:none}
+
+  .fb-tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 10px;border-radius:999px;margin-bottom:12px}
+  .fb-tag.dark{background:var(--red-soft);color:var(--red-ink)}
+  .fb-tag.mid{background:var(--amber-soft);color:var(--amber-ink)}
+  .fb-tag.ethical{background:var(--teal-soft);color:var(--teal-ink)}
+  .fb-block{background:var(--bg);border-radius:12px;padding:13px 16px;margin:10px 0}
+  .fb-block .h{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px}
+  .fb-block p{font-size:.92rem}
+  .fb-block.world{border:1.5px solid var(--violet);background:var(--violet-soft)}
+  .fb-block.world li{font-size:.9rem;margin:5px 0 0 18px}
+  .btn{background:var(--violet);color:#fff;border:none;border-radius:10px;font-weight:600;font-size:.98rem;padding:12px 28px;margin-top:12px;transition:transform .1s,box-shadow .15s}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(91,75,235,.3)}
+  .btn.ghost{background:var(--panel);color:var(--violet);border:1.5px solid var(--violet)}
+  .btn.danger{background:var(--red)}
+
+  .audit-card{border:2px solid var(--red)}
+  .dice{font-family:var(--font-display);font-weight:700;font-size:3.2rem;text-align:center;background:var(--bg);border-radius:14px;padding:16px;margin:12px 0}
+  .dice small{display:block;font-size:.75rem;font-weight:600;color:var(--ink-soft);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+  .audit-verdict{border-radius:12px;padding:14px 16px;font-size:.94rem;margin-top:6px;display:none}
+  .audit-verdict.pass{background:var(--teal-soft);color:#08604F;display:block}
+  .audit-verdict.fail{background:var(--red-soft);color:#8C1F30;display:block}
+  .audit-verdict.info{background:var(--bg);color:var(--ink);display:block}
+  .audit-card.event-card{border-color:var(--amber)}
+  .expand-btn{background:#232842;color:#C9CEDF;border:1px solid #3A4060;border-radius:8px;font-size:.72rem;font-weight:600;padding:4px 10px;cursor:pointer}
+  .expand-btn:hover{background:#2C3358;color:#fff}
+  #mapModal{border:none;border-radius:16px;background:var(--ocean);color:#C9CEDF;width:min(880px,94vw);max-height:92vh;padding:18px 20px;overflow:auto}
+  #mapModal::backdrop{background:rgba(10,12,24,.65)}
+  .mm-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px}
+  .mm-head b{font-family:var(--font-display);color:#fff;font-size:1.05rem}
+  .mm-close{background:#232842;color:#C9CEDF;border:1px solid #3A4060;border-radius:8px;font-size:.78rem;padding:5px 12px;cursor:pointer}
+  .mm-close:hover{background:#2C3358;color:#fff}
+  .mm-summary{font-size:.85rem;color:#9AA1BC;margin-bottom:10px}
+  .mm-summary b{color:#fff}
+  #mmDetails{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px;margin-top:14px}
+  .mmcard{background:#232842;border-radius:10px;padding:10px 12px;font-size:.76rem;line-height:1.45;border:1.5px solid transparent;transition:border-color .2s,background .2s}
+  .mmcard.sel{border-color:#8F7DFF;background:#2C3358}
+  .mmcard b{color:#fff}
+  .mmcard .mmstat{color:#9AA1BC}
+  .mmcard .mmbar{height:6px;background:#141930;border-radius:99px;overflow:hidden;margin:6px 0 4px}
+  .mmcard .mmbar i{display:block;height:100%;border-radius:99px}
+  .celeb-toast{position:fixed;top:16px;right:16px;z-index:80;max-width:300px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 12px 32px rgba(23,26,38,.18);font-size:.85rem;display:none}
+  .celeb-toast.show{display:block;animation:toastin .45s cubic-bezier(.16,1,.3,1)}
+  @keyframes toastin{from{transform:translateY(-12px);opacity:0}to{transform:none;opacity:1}}
+  .celeb-toast .ch{display:flex;gap:8px;align-items:center;margin-bottom:5px}
+  .celeb-toast .av{width:30px;height:30px;border-radius:50%;background:var(--violet-soft);display:flex;align-items:center;justify-content:center;font-size:1rem;flex:none}
+  .celeb-toast .cn{font-weight:700;font-size:.82rem}
+  .celeb-toast .cn span{display:block;font-weight:500;color:var(--ink-soft);font-size:.7rem}
+  .celeb-toast .gain{margin-top:6px;font-weight:700;color:var(--teal-ink);font-size:.78rem}
+
+  /* ---------- map ---------- */
+  .map-panel{background:var(--ocean);border-radius:var(--radius);padding:14px}
+  .map-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .map-title{font-family:var(--font-display);font-weight:700;color:#fff;font-size:.92rem}
+  .map-users{font-family:var(--font-display);font-weight:700;color:#B7A9FF;font-size:.92rem}
+  svg{width:100%;height:auto;display:block}
+  .region{fill:#3A4060;stroke:#0E1120;stroke-width:0.8;stroke-linejoin:round;transition:fill .8s ease;cursor:pointer;filter:var(--glow,none)}
+  .region:hover{filter:var(--glow,none) brightness(1.35)}
+  .region.selected{stroke:#E8EAFF;stroke-width:1.5}
+  .region.flash{animation:regionflash 1.6s ease-out 1}
+  @keyframes regionflash{0%,100%{filter:var(--glow,none)}25%{filter:var(--glow,none) brightness(2.3) saturate(1.5)}}
+  .arc{fill:none;stroke:#8F7DFF;stroke-width:1.2;stroke-dasharray:3 6;stroke-linecap:round;opacity:0;transition:opacity .8s ease;animation:dashflow 1.1s linear infinite}
+  @keyframes dashflow{to{stroke-dashoffset:-9}}
+  .hq-ping{fill:none;stroke:#B7A9FF;stroke-width:1.4;transform-box:fill-box;transform-origin:center;animation:hqping 2.4s ease-out infinite}
+  @keyframes hqping{0%{transform:scale(.25);opacity:.95}70%{transform:scale(2.1);opacity:0}100%{transform:scale(2.1);opacity:0}}
+  .hq-core{fill:#FFD34D;stroke:#0E1120;stroke-width:.8}
+  .region.closed{fill:#2A2F45 !important;stroke-dasharray:4 3}
+  .rlabel{font-family:var(--font-body);font-size:11px;font-weight:700;fill:#F2F3FA;pointer-events:none;paint-order:stroke;stroke:#0E1120;stroke-width:2.5px;stroke-linejoin:round}
+  .rlabel.closedlbl{fill:#8B93AE;font-size:10px}
+  .rpct{font-family:var(--font-display);font-size:11px;font-weight:700;fill:#B7A9FF;pointer-events:none;paint-order:stroke;stroke:#0E1120;stroke-width:2.5px;stroke-linejoin:round}
+  .rpct.frozen{fill:#FF8B9E}
+  .maplegend{display:flex;gap:12px;margin-top:8px;font-size:.7rem;color:#9AA1BC;align-items:center;flex-wrap:wrap}
+  .sw{width:12px;height:12px;border-radius:3px;display:inline-block;vertical-align:-2px;margin-right:4px}
+
+  .regions{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-top:12px}
+  .regions h3{font-family:var(--font-display);font-size:.9rem;margin-bottom:8px}
+  .rrow{display:flex;align-items:center;gap:8px;font-size:.78rem;padding:4px 0}
+  .rrow .rn{width:118px;flex:none;font-weight:600}
+  .rrow .rbar{flex:1;height:7px;background:var(--bg);border-radius:99px;overflow:hidden}
+  .rrow .rbar i{display:block;height:100%;background:var(--violet);border-radius:99px;transition:width .8s ease}
+  .rrow .rv{width:70px;flex:none;text-align:right;font-family:var(--font-display);font-weight:700}
+  .rrow.frozen .rn::after{content:" ⚠";color:var(--red)}
+  .rrow.closed{opacity:.45}
+
+  .ticker{background:#171A26;color:#C9CEDF;border-radius:12px;padding:10px 14px;margin-top:12px;font-size:.81rem;max-height:160px;overflow-y:auto}
+  .ticker .th{font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8B93AE;margin-bottom:6px}
+  .ticker div.item{padding:3px 0;border-bottom:1px dashed #2C3149}
+  .ticker div.item b{color:#fff}
+
+  .verdict{border-radius:var(--radius);padding:24px 26px;margin-bottom:16px;color:#fff}
+  .verdict.proved{background:linear-gradient(120deg,#0E9E8A,#5B4BEB)}
+  .verdict.empire{background:linear-gradient(120deg,#D6455A,#8C2E7A)}
+  .verdict.niche{background:linear-gradient(120deg,#0E9E8A,#3D74D9)}
+  .verdict.cashfire{background:linear-gradient(120deg,#E8930C,#D6455A)}
+  .verdict.shutdown{background:linear-gradient(120deg,#5A6072,#333846)}
+  .verdict .eyebrow{color:rgba(255,255,255,.75)}
+  .verdict p{opacity:.94;font-size:.96rem}
+  .bigstat{display:flex;gap:26px;flex-wrap:wrap;margin:10px 0 6px}
+  .bigstat div{font-family:var(--font-display)}
+  .bigstat .n{font-size:2rem;font-weight:700}
+  .bigstat .l{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;opacity:.75}
+  .qs li{margin:10px 0 0 20px;font-size:.95rem}
+  .log-row{display:flex;gap:10px;align-items:baseline;font-size:.87rem;padding:7px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .log-dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .log-dot.dark{background:var(--red)}.log-dot.mid{background:var(--amber)}.log-dot.ethical{background:var(--teal)}
+  .log-area{flex:none;width:118px;font-size:.72rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-soft)}
+  .log-tag{margin-left:auto;flex:none;font-size:.66rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px}
+  .log-tag.dark{background:var(--red-soft);color:var(--red-ink)}
+  .log-tag.mid{background:var(--amber-soft);color:var(--amber-ink)}
+  .log-tag.ethical{background:var(--teal-soft);color:var(--teal-ink)}
+  .bp-intro{font-size:.92rem;color:var(--ink-soft);margin:2px 0 10px}
+
+  .name-input{font-family:var(--font-display);font-size:1.1rem;font-weight:600;border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;width:100%;max-width:330px;margin:6px 0 4px;background:var(--bg);color:var(--ink)}
+  .name-input:focus{outline:none;border-color:var(--violet);background:#fff}
+  .introlist{list-style:none;margin:16px 0 4px}
+  .introlist li{display:flex;gap:10px;align-items:flex-start;font-size:.97rem;margin:9px 0;background:var(--bg);border-radius:10px;padding:10px 14px}
+  .introlist .em{flex:none;font-size:1.1rem}
+  .region-info{background:#232842;color:#C9CEDF;border-radius:10px;padding:9px 12px;font-size:.78rem;margin-top:8px;line-height:1.45}
+  .region-info b{color:#fff}
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">App <span>Empire</span></div>
+    <div class="qtr-pill" id="qtrPill">Start</div>
+  </div>
+
+  <div class="hud" id="hud" style="display:none">
+    <div class="stat users"><div class="l">👥 Users</div><div class="v" id="hUsers">0</div><div class="d" id="dUsers"></div></div>
+    <div class="stat cash"><div class="l">💰 Money</div><div class="v" id="hCash">$400M</div><div class="d" id="dProfit"></div></div>
+    <div class="stat"><div class="l">🔥 Hype</div><div class="v" id="hHype">50</div><div class="d" id="dHype"></div></div>
+    <div class="stat"><div class="l">💚 Wellbeing</div><div class="v" id="hWell">50</div><div class="d" id="dWell"></div></div>
+    <div class="stat risk" id="riskStat"><div class="l">🚨 Trouble</div><div class="v" id="hRisk">10%</div><div class="d" id="dRisk"></div><div class="hint">chance you get busted</div></div>
+  </div>
+
+  <div class="victory" id="victory" style="display:none">
+    <span class="vt">Win all 3:</span>
+    <span class="cond" id="c1"><span class="tick">○</span> 800M users</span>
+    <span class="cond" id="c2"><span class="tick">○</span> Making money</span>
+    <span class="cond" id="c3"><span class="tick">○</span> Wellbeing 60+</span>
+  </div>
+
+  <div class="stage">
+    <div class="main-col">
+
+      <!-- INTRO -->
+      <div class="card" id="intro">
+        <div class="eyebrow">Your mission</div>
+        <h1>Beat the giants. Win the world. Keep your soul.</h1>
+        <p>Everyone says a social media app can only get huge by using <b>dark patterns</b> — designs that trick your brain into doing what the app wants, not what <i>you</i> want. You have <b>$400 million</b> and <b>9 big decisions</b> to prove them wrong — starting from a small office in Melbourne.</p>
+        <ul class="introlist">
+          <li><span class="em">🏆</span><span><b>Win all 3 at once:</b> 800M users · making money · Wellbeing 60+. Two out of three proves nothing.</span></li>
+          <li><span class="em">🥊</span><span><b>You can't out-trick TikTok and Instagram.</b> Use their dark patterns and they'll copy yours right back — faster. But play fair, and they <i>can't</i> follow you.</span></li>
+          <li><span class="em">🌍</span><span><b>Countries join at different speeds.</b> Europe blocks risky apps. Japan &amp; Korea only trust the good guys. China &amp; Russia never open.</span></li>
+          <li><span class="em">🚨</span><span><b>Dark patterns fill your Trouble meter.</b> Inspectors run surprise audits — your Trouble % is exactly your chance of getting busted and fined.</span></li>
+          <li><span class="em">🎛️</span><span><b>No spoilers.</b> You only find out what a design does to people <i>after</i> you ship it — same as real app bosses. Read each option like a designer and think it through.</span></li>
+        </ul>
+        <p style="margin-top:14px"><b>Name your app:</b></p>
+        <input class="name-input" id="appNameInput" maxlength="16" placeholder="e.g. Loop, Vibe, Yarn…" aria-label="Name your app">
+        <br>
+        <button class="btn" id="startBtn">Let's go →</button>
+      </div>
+
+      <!-- QUESTION -->
+      <div class="card hidden" id="qCard">
+        <div class="eyebrow" id="qEyebrow"></div>
+        <h2 id="qTitle"></h2>
+        <p id="qBody"></p>
+        <div class="quote" id="qQuote"></div>
+        <div class="opts" id="opts"></div>
+      </div>
+
+      <!-- FEEDBACK -->
+      <div class="card hidden" id="fbCard">
+        <span class="fb-tag" id="fbTag"></span>
+        <span class="payoff" id="fbChips" style="display:inline-flex;vertical-align:middle;margin-left:6px"></span>
+        <h2 id="fbTitle"></h2>
+        <div class="fb-block world"><div class="h">🌍 The world reacts</div><ul id="fbWorld"></ul></div>
+        <div class="fb-block"><div class="h">💰 This turn</div><p id="fbFin" aria-live="polite"></p></div>
+        <div class="fb-block"><div class="h">🧠 The trick explained</div><p id="fbPsych"></p></div>
+        <div class="fb-block"><div class="h">📱 This really happened</div><p id="fbReal"></p></div>
+        <button class="btn" id="nextBtn">Next decision →</button>
+      </div>
+
+      <!-- AUDIT -->
+      <div class="card audit-card hidden" id="auditCard">
+        <div class="eyebrow" id="auditEyebrow" style="color:var(--red)">⚠️ Surprise audit</div>
+        <h2 id="auditTitle"></h2>
+        <p id="auditBody"></p>
+        <div class="dice"><span id="diceN">--</span><small id="diceCap"></small></div>
+        <div class="audit-verdict" id="auditVerdict" role="status" aria-live="polite"></div>
+        <button class="btn danger" id="rollBtn">Roll the dice 🎲</button>
+        <button class="btn hidden" id="auditNextBtn">Continue →</button>
+      </div>
+
+      <!-- RESULTS -->
+      <div id="results" class="hidden">
+        <div class="verdict" id="verdict">
+          <div class="eyebrow">The final report</div>
+          <h2 id="verdictTitle" style="color:#fff"></h2>
+          <div class="bigstat">
+            <div><div class="n" id="fUsers">0</div><div class="l">Users</div></div>
+            <div><div class="n" id="fProfit">$0</div><div class="l">Money per turn</div></div>
+            <div><div class="n" id="fWell">0</div><div class="l">Wellbeing</div></div>
+          </div>
+          <p id="verdictBody"></p>
+        </div>
+        <div class="card">
+          <h2>📋 Your app's design blueprint</h2>
+          <p class="bp-intro">This is the app you actually built, decision by decision. Screenshot it — it's your starting spec for designing your own Ethical Social Media App. Keep the fair-play rows. Rethink the rest.</p>
+          <div id="choiceLog" style="margin-top:6px"></div>
+          <h2 style="margin-top:22px">Talk about it</h2>
+          <ol class="qs">
+            <li>The giants copied your tricks within weeks — but they couldn't copy trust. Why not?</li>
+            <li>Which decision was hardest? What were you really trading away?</li>
+            <li>Was there a choice where the fair option was also the <i>smartest</i> move? What made it work?</li>
+            <li>If you could turn one rule from this game into a real law for every app, which would you pick — and why?</li>
+          </ol>
+          <button class="btn ghost" onclick="location.reload()" style="margin-top:20px">Play again ↺</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP SIDE -->
+    <div class="side-col">
+      <div class="map-panel">
+        <div class="map-head">
+          <div class="map-title" id="mapAppName">Your app around the world</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="map-users" id="mapUsers">0 users</div>
+            <button class="expand-btn" id="expandBtn" aria-label="Expand the world map">⤢ Expand</button>
+          </div>
+        </div>
+        <svg viewBox="0 0 640 400" role="img" aria-label="World adoption map"><defs><pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="0.9" fill="#2A3050"/></pattern><radialGradient id="ocean" cx="50%" cy="40%" r="85%"><stop offset="0%" stop-color="#273052"/><stop offset="100%" stop-color="#141930"/></radialGradient></defs><rect width="640" height="400" rx="10" fill="url(#ocean)"/><rect width="640" height="400" rx="10" fill="url(#dots)"/>
+          <rect x="0" y="0" width="640" height="400" fill="url(#dots)"/>
+          <path id="rg-na" class="region" d="M130.8,84.0L132.9,84.4L134.2,85.2L135.5,85.4L137.4,84.7L139.5,84.1L141.3,84.3L144.0,83.6L146.6,83.1L146.9,83.9L148.3,83.5L149.3,82.6L150.1,82.8L150.9,84.4L153.7,83.2L152.8,84.5L154.7,84.2L155.6,83.7L157.2,83.8L158.6,84.6L161.2,85.2L162.8,85.5L164.2,85.4L165.3,86.3L162.7,87.1L164.9,87.5L168.8,87.3L170.1,87.0L170.8,88.1L173.0,87.2L172.1,86.4L173.5,85.8L175.2,85.7L176.4,85.6L177.2,86.0L177.8,86.9L179.5,86.8L181.3,87.6L183.6,87.3L185.6,87.3L186.2,86.3L187.6,86L189.3,86.5L188.2,88.2L190.0,86.8L191.0,86.9L192.8,85.1L192.1,84.0L191.0,83.3L192.4,81.4L194.9,80.2L196.4,80.5L197.2,81.2L197.7,83.1L196.0,84.0L198.3,84.3L197.1,86.1L199.8,84.8L200.7,85.9L199.5,87.2L200.1,88.4L202.3,87.1L204.2,85.6L205.4,83.7L207.2,83.8L209.1,84.1L210.4,84.9L210.0,85.8L208.4,86.7L208.9,87.7L208.2,88.5L204.8,89.8L202.7,90.1L201.6,89.5L200.7,90.4L198.5,91.9L197.6,92.7L195.3,94L193.2,94.1L191.7,94.8L190.9,96.0L189.1,96.3L186.5,97.8L183.8,99.8L182.4,101.3L181.1,103.5L183.1,103.8L182.8,105.6L182.7,107.0L185.0,106.7L187.4,107.5L188.5,108.2L189.1,109.1L190.8,109.7L192.0,110.5L194.4,110.6L196.0,110.8L195.0,112.5L194.7,114.4L194.9,116.6L196.4,118.5L197.9,117.8L199.5,115.8L199.9,112.7L199.3,111.7L202.1,110.8L204.3,109.4L205.7,108.1L206.1,106.8L205.8,105.2L204.7,103.8L207.3,101.8L207.4,100.1L208.3,97.2L209.5,96.8L211.7,97.3L213.1,97.5L214.5,97.0L215.6,97.6L216.9,98.7L217.0,99.4L219.5,99.5L218.8,101.1L218.3,103.5L219.6,103.8L220.2,104.9L222.7,103.8L224.9,101.8L226.2,100.9L226.7,102.6L227.8,105.0L228.6,107.3L227.6,108.5L229.2,109.6L230.2,110.7L232.5,111.2L233.3,111.8L233.4,113.4L234.5,113.7L234.9,114.4L234.4,116.6L233.1,117.4L231.8,118.1L229.0,118.8L226.6,120.4L223.9,120.7L220.7,120.3L218.4,120.3L216.7,120.4L215.0,121.9L212.7,122.7L209.6,125.4L207.2,127.2L208.7,126.9L212.0,124.3L215.8,122.6L218.2,122.4L219.3,123.4L217.4,124.7L217.3,126.9L217.4,128.4L219.2,129.4L221.9,129.1L224.1,126.9L223.8,128.3L224.7,129.1L222.4,130.4L218.5,131.6L216.7,132.4L214.6,133.9L213.4,133.7L213.8,132.0L217.0,130.3L214.4,130.4L212.6,130.7L212.7,131.3L210.7,132.3L208.8,133.0L207.0,133.6L205.8,134.8L205.4,135.3L205.1,136.4L205.3,137.4L206.0,137.5L206.0,136.7L206.4,137.2L206.1,137.8L204.9,138.1L204.2,138.1L202.9,138.4L202.1,138.5L201.1,138.6L199.6,139.2L202.1,138.8L202.5,139.2L200.1,139.8L199.0,139.9L199.1,139.6L198.5,140.2L198.9,140.3L198.2,141.7L196.6,143.3L196.6,142.8L196.3,142.7L195.9,142.2L195.9,143.3L196.2,143.6L196.1,144.4L195.4,145.2L194.0,146.9L193.9,146.8L194.7,145.4L194.1,144.6L194.3,142.9L193.8,143.8L193.8,145.1L192.8,144.8L193.8,145.4L193.4,147.4L193.8,147.5L193.8,148.2L193.6,150.3L192.1,151.8L190.3,152.5L188.9,153.7L188.0,153.8L187.0,154.6L186.6,155.3L184.5,156.6L183.3,157.6L182.2,158.8L181.6,160.3L181.7,161.7L181.9,163.5L182.3,165.0L182.2,165.9L182.6,168.3L182.3,169.6L182.0,170.5L181.4,171.7L180.8,172.0L180.0,171.7L179.9,170.8L179.3,170.3L178.7,168.6L178.2,167.0L178.1,166.2L178.8,164.8L178.5,163.7L177.5,161.9L176.9,161.6L175.0,162.5L174.7,162.4L174.1,161.5L173.2,161.0L171.2,161.2L169.7,161.0L168.4,161.1L167.6,161.5L167.8,162.0L167.6,162.9L167.9,163.3L167.5,163.5L166.9,163.2L166.2,163.6L165.0,163.6L163.9,162.5L162.4,162.7L161.3,162.2L160.2,162.4L158.6,162.9L156.7,164.4L154.8,165.3L153.7,166.3L153.1,167.2L152.7,168.6L152.6,169.6L152.8,170.3L152.1,170.4L151.0,170L149.8,169.3L149.5,168.3L149.5,166.9L148.7,165.7L148.4,164.5L147.9,163.1L146.9,162.2L145.5,162.3L144.0,163.9L142.8,163.3L142.0,162.7L141.9,161.5L141.6,160.5L140.9,159.5L140.2,158.9L139.8,158.2L136.9,158.2L136.6,159.0L135.3,159.0L131.9,159.0L128.5,157.6L126.2,156.6L126.5,156.2L124.3,156.4L122.3,156.5L122.4,155.5L121.7,154.3L121.0,154.0L121.0,153.5L120.1,153.4L119.7,152.8L118.2,152.6L117.9,152.3L118.1,151.1L117.3,149.0L117.0,146.2L117.2,145.7L116.8,145.0L116.2,143.3L116.7,141.6L116.3,140.5L117.4,138.8L118.2,137.0L118.4,135.5L120.0,133.6L121.1,131.7L122.2,129.9L123.3,127.2L123.7,125.4L123.8,124.5L124.2,124.1L126.1,124.8L125.9,126.7L126.6,126.2L127.2,124.5L127.6,122.9L127.4,122.9L125.5,120.9L124.8,120.1L122.5,119.2L122.7,117.5L123.7,116.3L122.3,115.4L123.0,113.9L122.2,112.4L122.8,111.4L122.5,110.7L121.6,110.1L122.3,108.4L121.6,106.9L122.1,105.1L120.8,104.9L118.5,104.9L117.2,104.4L115.7,102.4L114.6,102.0L112.6,101.4L110.5,101.5L108.4,100.7L107.3,99.9L105.4,100.3L104.5,101.6L103.6,101.7L101.6,102.1L99.7,102.7L97.8,103.1L98.5,102.0L100.9,100.2L102.9,99.6L102.9,99.1L100.2,100.2L98.0,101.4L94.7,102.7L95.0,103.7L92.4,105.0L90.1,105.8L88.1,106.4L87.0,107.2L83.9,108.2L82.6,109.1L80.2,110.0L79.2,109.8L77.4,110.4L75.3,111.0L73.5,111.7L70.4,112.2L70.5,111.9L72.9,111.0L74.9,110.4L77.4,109.3L79.4,109.1L80.9,108.3L83.9,107.2L84.6,106.8L86.3,106.1L87.8,104.7L89.6,103.6L87.4,104.1L87.2,103.8L85.8,104.5L85.7,103.5L84.7,104.2L85.0,103.3L82.8,104.0L81.9,104.0L82.8,102.9L83.7,102.2L83.4,101.5L81.2,101.9L80.8,101.0L80.3,100.6L81.3,99.5L81.0,98.7L82.6,97.7L84.9,96.6L86.3,95.7L87.6,95.6L88.3,95.8L90.3,95.0L91.2,95.1L92.9,94.6L93.5,93.7L93.0,93.4L94.8,92.7L93.9,92.7L92.0,93.1L91.1,93.5L90.5,93.1L88.3,93.3L86.7,92.9L86.9,92.2L86.2,91.1L89.0,90.4L93.1,89.5L94.2,89.5L93.0,90.4L96.0,90.3L96.1,89.2L95.2,88.5L95.2,87.6L94.7,86.9L93.5,86.3L95.3,85.4L97.8,85.4L100.4,84.6L101.7,83.7L104.0,82.9L105.6,82.7L109.0,81.9L110.1,82.1L113.1,81.1L114.7,81.5L114.8,82.3L115.8,81.9L117.9,82.0L117.4,82.4L119.1,82.7L120.7,82.6L122.9,83.1L125.3,83.3L126.1,83.5L128.1,83.2L129.6,83.7ZM200.0,97.0L201.5,96.1L203.5,96.1L203.3,96.5L201.1,97.5L200.1,97.5ZM216.1,78.7L215.2,77.8L215.6,77.2L216.3,77.1L219.1,77.3L220.8,78.2L220.7,78.7L219.3,78.6L217.9,78.6L216.4,78.8ZM205.0,97.6L205.8,97.1L206.3,97.1L206.5,97.5L205.5,98.5L204.9,98.3L204.8,97.8ZM200.7,75.1L199.5,75.7L197.8,75.6L196.6,75.2L197.8,74.5L200.0,74.0L200.6,74.6ZM203.7,71.1L203.1,71.1L200.9,71.0L200.9,70.6L203.4,70.6L204.0,70.9ZM201.9,69.2L202.8,69.7L202.0,70.2L199.9,70.5L199.2,70.2L199.2,69.6L199.7,69.0L201.2,69.1ZM207.0,76.1L205.1,75.9L202.1,75.3L202.3,74.4L202.8,73.6L202.1,72.9L199.6,72.7L198.6,72.3L199.6,71.6L202.1,71.7L203.1,72.2L205.5,72.2L206.2,72.7L205.4,73.3L206.6,73.7L207.1,74.1L208.8,74.1L210.5,74.3L212.8,73.9L215.4,73.8L217.4,73.9L218.4,74.5L218.2,75.2L217.1,75.6L215.0,76.0L213.5,75.8L209.6,76.0ZM183.1,70.1L184.6,70.3L183.7,70.8L181.0,71.2L179.7,70.7L181.2,70.2ZM184.6,69.1L185.8,69.4L184.0,69.7L182.0,69.7L182.2,69.5L184.0,69.0ZM234.1,118.3L232.9,119.5L231.4,121.3L232.6,120.6L233.6,121.0L232.8,121.7L234.1,122.3L234.9,121.8L236.3,122.4L235.5,123.8L236.7,123.5L236.6,124.6L236.8,125.8L235.7,127.6L235.0,127.7L234.1,127.3L234.8,125.6L234.4,125.4L232.2,127.1L231.2,127.1L232.6,126.1L231.2,125.6L229.4,125.7L226.4,125.7L226.3,125.1L227.5,124.4L226.9,123.8L228.6,122.6L231.0,119.5L232.3,118.3L233.8,117.6L234.5,117.7ZM202.8,92.1L204.0,92.7L205.3,93.3L205.0,94.2L206.1,94.0L206.8,94.6L205.2,95.2L203.2,94.8L202.9,93.9L201.0,94.9L198.4,95.9L198.5,94.8L196.5,95.0L198.2,94.1L199.2,92.6L200.6,91.0L201.5,91.1L201.4,91.9L202.2,91.6ZM216.9,79.5L218.5,78.8L220.9,79.6L222.3,80.4L222.1,81.2L224.7,80.8L225.5,81.9L228.4,82.6L229.2,83.3L229.7,84.9L226.8,85.7L229.5,86.8L231.5,87.2L232.7,88.9L234.8,89.0L233.9,90.2L230.6,92.3L229.2,91.5L227.8,89.8L225.9,90.0L225.2,91.1L226.2,92.1L227.8,93.0L228.2,93.4L228.3,95.2L227.3,96.6L225.7,96.1L222.8,94.6L224.1,96.2L225.1,97.3L225.1,97.9L221.5,97.2L218.9,96.1L217.6,95.2L218.3,94.7L216.7,93.8L215.0,92.9L214.8,93.4L210.6,93.7L209.7,93.1L211.3,91.8L214.0,91.7L216.9,91.5L216.8,90.9L217.7,90.0L220.4,88.2L220.4,87.4L220.1,86.8L218.5,86.0L216.1,85.4L217.2,85.0L216.3,83.9L215.2,83.8L214.5,83.2L213.5,83.7L210.9,83.9L206.3,83.5L203.8,83.0L201.8,82.8L201.1,82.2L203.0,81.4L201.1,81.4L201.8,79.7L203.9,78.2L205.7,77.5L209.3,77.0L207.6,78.1L208,79.2L210.0,77.8L213.8,77.1L214.9,78.8L214.0,79.9ZM198.5,76.5L201.2,76.5L203.3,76.9L200.3,78.4L198.5,78.8L196.2,80.0L194.8,79.9L195.1,78.5L195.7,77.6L196.9,76.9ZM165.4,73.3L168.7,72.1L172.4,71.1L174.3,71.1L176.2,70.9L174.8,72.1L173.3,72.6L172.0,72.7L169.0,73.4L166.7,73.6ZM118.5,112.9L120.1,112.8L118.1,115.0L118.4,116.6L117.8,116.6L117.5,115.7L117.5,114.8L117.1,114.2L117.4,113.3L118.0,112.7ZM192.0,68.3L194.2,68.6L196.9,69.1L197.2,69.8L197.0,70.5L195.2,70.3L193.7,69.8L191.0,69.7L192.6,69.3L191.5,68.9ZM126.0,123.9L125.0,124.1L123.0,123.2L122.9,122.5L121.9,121.8L122.0,121.3L120.6,120.9L120.6,119.8L121.0,119.4L122.4,119.8L123.2,120.1L124.5,120.3L124.6,121.0L124.9,121.9L125.9,122.8ZM164.3,76.0L165.8,76.3L169.0,76.4L169.8,76.9L170.5,77.6L168.5,78.0L164.3,79.2L161.6,80.4L160.9,81.1L156.7,81.9L156.7,81.2L154.4,80.3L155.7,79.6L157.8,78.3L159.9,77.2L159.7,76.2ZM183.9,73.7L185.2,73.4L186.5,73.5L186.0,74.3L184.6,75.1L180.0,75.3L176.2,76.0L174.2,76.1L174.5,75.5L177.8,74.8L171.9,75.0L170.4,74.7L173.7,73.1L175.3,72.7L178.3,73.2L179.6,74.2L181.7,74.3L181.4,72.8L183.1,72.2L184.2,72.4L183.9,73.1ZM181.6,78.2L182.5,78.9L182.0,80.6L181.5,81.8L183.1,82.6L184.9,83.4L184.2,84.2L181.9,84.3L182.3,85.0L181.4,85.6L179.1,85.4L177.1,84.9L175.5,85.0L172.5,85.6L168.9,85.9L166.3,86.0L166.2,85.2L164.8,84.7L163.4,84.9L162.9,83.5L164.0,83.4L166.3,83.1L168.1,83.1L170.1,82.8L167.8,82.4L164.9,82.6L163.0,82.5L162.9,81.9L166.5,81.2L164.5,81.3L162.6,80.8L164.8,79.5L166.3,78.9L170.7,77.8L171.7,78.2L170.4,79.0L173.7,78.4L174.8,79.3L177.0,78.4L177.8,79.0L177.5,80.6L178.7,79.9L179.2,78.2L180.5,78.0ZM189.0,78.9L188.4,77.8L190.6,77.0L191.9,77.3L194.3,77.1L194.3,77.6L192.5,78.4L193.9,79.1L192.6,80.6L189.9,81.3L188.8,81.1L188.3,80.5L186.1,79.2L186.5,78.7ZM182.2,77.4L184.0,77.3L184.7,77.7L182.7,78.8L181.6,77.6ZM196.8,72.3L197.2,73.0L196.5,73.9L194.9,75.1L192.7,75.2L191.6,75.0L192.4,74.0L190.2,74.2L191.2,72.9L192.5,73.0L194.9,72.4L196.5,72.5ZM205.5,66.5L206.8,66.0L208.1,65.9L207.9,65.6L210.8,65.5L211.5,66.3L213.2,66.6L214.9,66.9L214.9,67.8L215.9,68.3L213.9,68.7L210.6,69.9L208.4,70.0L206.0,69.8L205.3,69.2L205.8,68.6L207.1,68.2L204.9,68.2L204.1,67.8L204.0,67.1ZM212.7,64.7L214.8,64.4L216.2,64.4L218.7,64.2L221.0,63.7L222.3,63.8L223.2,64.1L224.9,63.4L226.6,63.2L228.9,63.1L232.4,63.0L232.9,63.2L236.4,63.0L238.8,63.0L241.2,63.1L244.2,63.2L246.5,63.4L248.3,63.7L248.0,64.1L244.7,64.6L241.6,64.9L240.3,65.2L242.9,65.2L239.4,66.0L237.1,66.4L234.2,67.6L231.5,67.9L230.5,68.2L226.7,68.3L228.2,68.5L227.2,68.8L227.7,69.5L226.1,70.0L223.9,70.5L222.9,71.1L220.8,71.5L220.7,71.9L222.9,71.8L222.7,72.2L218.6,73.2L215.7,72.7L211.8,73.0L210.1,72.8L207.8,72.7L208.2,71.9L210.8,71.6L211.1,70.5L211.9,70.4L214.7,71.0L213.8,70.0L212.1,69.7L213.6,69.2L216.0,68.8L216.8,68.3L215.6,67.7L215.8,67.0L219.0,67.0L219.8,67.2L222.2,66.7L219.7,66.5L215.4,66.6L213.8,66.1L213.4,65.5L212.5,65.1ZM217.0,87.9L215.8,88.5L214.2,88.6L214.3,87.7L215.5,86.7L216.8,86.5L217.6,86.9L217.3,87.7ZM190.6,84.4L190.9,85.0L189.7,85.6L188.2,85.1L187.0,85.3L185.7,84.5L187.3,84.0L188.7,83.2L189.8,83.7L190.4,84.0ZM219.4,121.1L220.0,121.0L221.9,121.5L223.3,122.3L223.2,122.7L222.4,122.7L220.6,122.1ZM218.6,126.8L218.9,127.8L220.0,128.1L221.4,128.0L220.4,128.8L219.8,129.0L218.0,128.1L217.8,127.4ZM49.0,182.3L49.3,182.5L49.5,182.8L49.8,183.5L49.7,183.6L48.9,184.1L48.3,184.4L47.9,184.7L47.6,184.4L47.8,183.8L47.7,183.1L47.8,182.9L48.2,182.5L48.2,182.1L48.3,181.9L48.4,182.0ZM48.4,180.9L48.1,181.1L47.5,181.3L47.3,180.9L47.2,180.7L47.2,180.6L47.4,180.4L48.0,180.6ZM47.3,180.1L47.1,180.3L46.2,180.2L46.4,180.0ZM45.4,178.9L45.5,179.1L45.8,179.7L45.7,179.9L45.5,179.8L45.0,179.8L44.9,179.3L44.8,179.2ZM43.3,177.9L43.2,178.4L43.0,178.6L42.5,178.2L42.6,178.1L42.9,177.9ZM78.4,100.8L79.4,101.0L78.8,101.7L77.7,102.0L77.1,101.6L76.7,101.1ZM93.6,105.4L94.5,105.5L94.6,106.1L92.5,107.0L90.4,107.7L90.1,107.2L90.6,106.3L92.6,105.6ZM77.4,94.5L77.9,94.9L79.0,94.7L79.6,95.2L80.8,95.4L80.4,95.6L78.9,96.0L78.3,95.6L78.1,95.3L76.7,95.4L76.6,95.2ZM265.8,63.7L270.2,63.0L274.2,63.0L275.9,62.6L280.0,62.5L289.0,62.6L295.9,63.6L293.6,64.1L289.1,64.1L282.8,64.3L283.3,64.5L287.5,64.4L290.8,64.8L293.2,64.4L294.1,64.9L292.5,65.7L295.7,65.2L301.5,64.7L305.0,64.9L305.5,65.5L300.5,66.5L299.8,66.8L295.9,67.1L298.7,67.1L297.1,68.2L295.9,69.2L295.6,70.9L296.9,71.9L295.0,72.0L292.8,72.5L295.0,73.3L295.1,74.7L293.7,74.8L295.1,76.2L292.2,76.3L293.6,77.0L293.1,77.6L291.2,77.9L289.4,77.9L290.8,79.0L290.7,79.7L288.3,79.0L287.5,79.5L289.2,79.9L290.8,81.0L291.0,82.3L288.6,82.7L287.7,82.0L286.2,81.0L286.5,82.2L284.8,83.1L288.3,83.2L290.1,83.3L286.2,84.8L282.3,86.1L278.2,86.7L276.7,86.8L275.1,87.4L272.8,89.3L269.5,90.6L268.6,90.6L266.6,91.1L264.5,91.5L263.0,92.6L262.7,93.9L261.6,95.1L258.9,96.5L259.1,98.0L258.1,99.5L256.9,101.3L254.8,101.5L253.1,99.9L250.2,99.9L249.1,98.9L248.7,97.1L246.9,94.8L246.6,93.6L247.0,92.0L245.6,90.3L246.6,89.0L245.9,88.4L248.0,86.3L250.3,85.7L251.1,85.0L251.9,83.6L250.1,84.2L249.3,84.5L248.0,84.7L246.5,84.2L246.9,83.0L247.8,82.1L249.0,82.0L251.6,82.5L249.7,81.4L248.8,80.8L247.3,81.1L246.4,80.6L248.5,79.1L248.0,78.4L247.5,77.3L246.7,75.5L245.4,74.9L245.8,74.2L242.8,73.3L240.2,73.2L236.8,73.2L233.7,73.4L232.5,72.8L231.0,71.9L234.6,71.4L237.1,71.3L232.1,70.9L229.7,70.2L230.3,69.7L235.4,68.9L240.4,68.2L241.2,67.7L238.3,67.2L239.8,66.6L244.7,65.6L246.5,65.5L246.5,64.8L249.5,64.5L253.3,64.3L256.9,64.3L257.8,64.7L261.4,64.0L263.9,64.5L265.5,64.6L267.6,65.0L265.3,64.3Z"/>
+          <path id="rg-latam" class="region" d="M214.8,331.7L215.7,332.6L217.0,334.0L219.4,335.2L221.6,335.7L221.3,336.7L219.9,336.8L218.9,336.1L218.7,336.9L217.6,337.5L216.8,337.4L215.9,337.2L214.6,336.7L212.9,336.4L210.6,335.3L208.6,334.2L205.7,332.1L207.1,332.5L209.8,333.8L212.0,334.5L212.5,333.6L212.5,332.2L213.6,331.4ZM221.8,293.6L221.9,294.7L224.3,296.5L224.4,297.9L225.6,298.8L225.7,299.8L224.6,302.4L222.3,303.6L219.1,304.0L217.3,303.8L217.9,305.0L217.9,306.5L218.4,307.6L217.6,308.3L216.0,308.6L214.2,307.8L213.7,308.4L214.4,310.4L215.7,311.0L216.4,310.4L217.1,311.4L215.8,312.1L214.8,313.3L215.1,315.4L215.0,316.5L213.5,316.5L212.5,317.5L212.5,319.0L214.5,320.5L216.1,320.9L216.1,322.7L214.6,323.8L214.3,326.2L213.1,327.0L212.8,327.9L214.0,330.0L215.4,331.1L214.7,331.0L213.3,331.0L212.7,331.5L211.6,332.2L212.0,334.0L211.4,334.0L209.4,333.4L207.2,332.0L204.9,330.9L203.9,329.7L203.9,328.5L202.7,327.2L201.3,323.8L201.3,321.9L202.5,320.3L199.9,319.7L200.9,317.9L200.4,314.6L202.4,315.3L202.0,311.1L200.8,310.5L201.0,313.1L199.9,312.8L199.6,309.9L199.2,306.1L199.5,304.7L198.6,302.7L197.9,300.3L198.6,300.3L198.8,296.9L199.3,293.6L199.4,290.5L198.4,287.4L198.6,285.7L197.9,283.2L198.5,280.7L198.2,276.6L198.1,272.3L198.1,267.7L197.6,264.3L196.9,261.4L195.0,260.2L194.8,259.4L191.1,257.3L187.7,255.1L186.2,253.8L185.4,252.1L185.6,251.5L183.9,248.8L181.9,245.0L180.0,240.9L179.2,240.0L178.6,238.5L177.1,237.1L175.8,236.3L176.4,235.4L175.4,233.4L176.0,232.0L177.3,230.7L178.3,229.1L177.9,228.2L177.2,229.2L176.1,228.3L176.5,227.7L176.1,225.8L176.8,225.5L177.1,224.2L177.8,222.9L177.6,222.1L178.6,221.6L179.8,220.8L179.6,220.2L180.3,220.0L180.2,219.0L180.6,218.3L181.5,218.1L182.3,216.8L183.0,215.8L182.4,215.3L182.7,214.1L182.4,212.2L182.8,211.6L182.6,209.9L181.9,208.8L181.3,208.2L181.0,207.1L181.5,206.6L181.0,206.4L180.7,205.7L179.9,205.2L179.1,205.3L178.7,206.0L178.0,206.5L177.6,206.6L177.4,207.0L178.2,208.1L177.7,208.4L177.4,208.7L176.6,208.8L176.3,207.6L176.1,207.9L175.5,207.8L175.2,207.0L174.5,206.9L174.0,206.6L173.3,206.6L173.2,207.1L173.0,206.8L172.1,206.3L171.7,205.9L171.9,205.5L171.9,205.1L171.4,204.6L170.8,204.2L170.2,203.9L170.1,203.3L169.7,202.9L169.7,203.5L169.4,204.0L169.0,203.4L168.4,203.2L168.2,202.8L168.3,202.2L168.6,201.5L168.1,201.3L168.5,200.9L168.0,200.2L167.2,199.4L166.9,198.7L166.2,198.0L165.4,197.1L165.6,196.8L165.9,197.1L166.0,197.0L165.8,196.3L165.2,196.1L165.0,196.6L164.0,196.6L163.4,196.4L162.7,196.0L161.7,195.8L161.3,195.4L160.4,195.0L159.3,195.0L158.5,194.6L157.7,193.7L155.9,191.5L155.1,190.9L153.8,190.3L152.7,190.5L151.2,191.2L150.3,191.5L149.2,190.9L147.9,190.5L146.4,189.6L145.1,189.3L143.3,188.3L141.9,187.3L141.6,186.8L140.6,186.7L138.9,186.0L138.3,185.1L136.6,183.9L136.0,182.6L135.7,181.6L136.4,181.4L136.3,180.8L136.8,180.3L136.9,179.5L136.5,178.6L136.5,177.8L136.1,176.7L135.0,174.7L133.6,173.1L133.1,171.8L131.8,170.9L131.6,170.4L132.2,169.2L131.4,168.7L130.6,167.7L130.6,166.2L129.7,166.1L129.0,165.0L128.5,164.0L128.6,163.3L128.1,161.7L127.9,160.2L128.2,159.4L127.2,158.5L126.6,158.6L125.8,158.1L125.3,158.9L125.3,159.9L125.0,161.5L125.3,162.3L126.2,163.7L126.3,164.2L126.6,164.4L126.6,165.1L126.9,165.1L126.9,166.4L127.3,166.9L127.5,167.6L128.3,168.7L128.4,170.6L128.7,171.5L128.9,172.5L128.8,173.6L129.6,173.7L130.1,174.6L130.5,175.5L130.4,175.9L129.5,176.7L129.2,176.6L129.0,175.4L128.1,174.2L127.1,173.2L126.4,172.7L126.8,171.2L126.8,170.0L126.1,169.4L125.2,168.5L124.9,168.7L124.6,168.2L123.6,167.7L122.9,166.5L123.1,166.4L123.8,166.5L124.6,165.7L124.9,164.8L124.0,163.3L123.2,162.7L122.9,161.4L122.7,160.1L122.4,158.4L122.3,156.5L124.3,156.4L126.5,156.2L126.2,156.6L128.5,157.6L131.9,159.0L135.3,159.0L136.6,159.0L136.9,158.2L139.8,158.2L140.2,158.9L140.9,159.5L141.6,160.5L141.9,161.5L142.0,162.7L142.8,163.3L144.0,163.9L145.5,162.3L146.9,162.2L147.9,163.1L148.4,164.5L148.7,165.7L149.5,166.9L149.5,168.3L149.8,169.3L151.0,170L152.1,170.4L152.8,170.3L151.8,172.2L151.2,173.6L150.5,176.4L150.1,177.4L150.2,178.6L150.6,179.6L150.7,181.2L151.6,182.7L151.8,183.9L152.4,184.9L154.1,185.4L154.7,186.3L156.4,185.7L157.7,185.5L159.1,185.2L160.2,184.8L161.5,184.0L162.1,182.8L162.4,181.0L162.8,180.4L164.1,179.9L166.0,179.4L167.5,179.5L168.6,179.3L169.0,179.7L168.8,180.7L167.7,182.0L167.1,183.2L167.3,183.6L167.0,184.5L166.3,186.1L165.9,185.5L165.6,185.6L165.5,185.9L165.9,185.9L165.8,186.5L165.4,187.3L165.5,187.7L165.2,188.4L165.3,188.6L165.0,189.6L164.5,190.2L164.2,190.3L163.8,191.0L164.3,191.3L164.5,191.0L165.0,191.3L165.2,191.4L165.6,191.0L166.1,191.0L166.2,191.2L166.5,191.1L167.3,191.2L168.1,191.2L168.7,191.0L169.0,190.7L169.5,190.8L169.9,191.0L170.4,190.9L170.7,190.7L171.5,191.0L171.8,191.1L172.3,191.5L172.7,191.9L173.3,192.2L173.7,192.8L173.6,193.0L173.4,193.5L173.6,194.2L173.1,194.9L172.8,195.8L172.7,196.7L172.7,197.2L172.7,198.1L172.4,198.3L172.2,199.2L172.2,199.7L171.8,200.3L171.9,200.8L172.1,201.2L172.5,202.3L173.1,203.1L173.9,204.0L174.5,204.7L174.4,205.2L175.1,205.3L175.3,205.1L175.8,205.6L176.6,205.4L177.4,204.9L178.5,204.5L179.2,203.9L180.1,204.0L180.1,204.2L181.0,204.3L181.8,204.6L182.3,205.3L183.0,205.8L183.9,205.9L185.3,204.5L186.0,204.2L186.1,203.6L186.5,201.8L187.6,200.9L188.7,200.8L188.9,200.4L190.3,200.6L191.7,199.5L192.4,199.1L193.4,198.1L194.0,198.2L194.4,198.7L194.0,199.4L193.9,199.9L192.9,200.2L193.4,201.1L193.3,202.2L192.5,203.4L193.0,205.0L193.8,204.9L194.3,203.4L193.8,202.7L193.8,201.1L196.0,200.3L195.9,199.3L196.5,198.6L197.1,200.1L198.3,200.1L199.4,201.3L199.4,202.0L201.0,202.0L202.9,201.8L203.8,202.7L205.2,202.9L206.2,202.3L206.3,201.8L208.5,201.7L210.6,201.6L209.0,202.2L209.6,203.2L211.0,203.4L212.3,204.4L212.5,206.0L213.4,206.0L214.1,206.5L215.2,207.2L216.3,208.6L216.3,209.6L217.0,209.7L217.9,210.7L218.6,211.4L220.7,211.8L220.9,211.4L222.3,211.3L224.2,211.8L223.3,213.6L223.4,215.0L224.0,216.2L223.7,217.1L223.6,218.0L223.1,218.9L223.9,219.3L224.4,218.8L224.8,218.9L225.0,219.4L225.9,219.3L226.6,218.5L227.2,217.0L228.2,215.1L228.8,215.0L229.3,216.2L230.2,219.8L231.2,220.1L231.2,221.5L229.9,223.2L230.4,223.8L233.6,224.1L233.6,226.2L235.0,224.9L237.2,225.6L240.2,226.9L241.0,228.1L240.8,229.2L242.8,228.6L246.3,229.7L248.9,229.6L251.6,231.3L253.9,233.6L255.3,234.2L256.8,234.3L257.4,234.9L258.1,237.5L258.4,238.8L257.8,242.2L256.9,243.5L254.5,246.4L253.5,248.7L252.2,250.5L251.8,250.5L251.3,252.0L251.6,255.9L251.3,259.1L251.2,260.4L250.7,261.3L250.6,264.0L249.0,266.7L248.8,268.8L247.5,269.7L247.2,271.0L245.3,271.0L242.6,271.8L241.5,272.7L239.6,273.3L237.8,274.9L236.5,277.0L236.4,278.5L236.8,279.7L236.7,281.8L236.5,282.8L235.4,283.9L234.0,287.6L232.7,289.2L231.7,290.2L231.2,292.2L230.3,293.3L229.8,294.6L228.1,295.8L226.8,295.4L225.9,295.6L224.2,294.7L223.1,294.8ZM194.5,186.5L193.3,186.2L192.5,186.3L191.5,186.2L190.6,186.5L189.7,185.9L189.9,185.2L191.5,185.5L192.8,185.7L193.5,185.2L192.8,184.3L192.9,183.5L191.9,183.2L192.3,182.7L193.4,182.7L194.8,183.1L195.1,182.7L196.5,182.7L197.4,183.3L197.9,183.2L198.1,183.9L199.1,183.9L199.0,184.5L199.7,184.6L200.5,185.3L199.8,186.2L199.0,185.7L198.2,185.8L197.6,185.7L197.3,186.1L196.6,186.2L196.4,185.7L195.8,186.0L194.9,187.4L194.5,187.1ZM184.4,168.4L185.2,168.3L186.3,168.3L186.3,168.9L184.4,169.2ZM186.5,167.9L187.7,168.9L187.2,170.3L186.9,170.1L187.1,169.0L186.5,168.2ZM185.2,171.7L185.7,171.8L186.0,173.5L185.8,174.7L185.4,174.8L185.1,173.6L184.6,173.0ZM225.7,330.1L227.2,328.9L228.7,329.4L229.4,328.6L230.9,329.5L230.6,330.2L228.7,330.8L227.8,330.1L226.8,331.0ZM204.1,185.5L204.9,185.7L205.2,186.1L204.7,186.7L203.4,186.6L202.4,186.7L202.3,185.8L202.6,185.5ZM184.3,185.6L185.5,185.8L186.3,186.3L186.6,186.8L185.3,186.9L184.8,187.2L183.8,186.9L182.9,186.1L183.2,185.7L183.9,185.5ZM177.5,175.9L178.9,176.0L180.3,176.1L181.8,176.8L182.4,177.5L184.0,177.3L184.6,177.8L185.9,179.1L186.8,180.0L187.4,180.0L188.4,180.4L188.2,181.0L189.5,181.0L190.7,181.9L190.4,182.4L189.2,182.6L188.0,182.7L186.9,182.6L184.3,182.8L185.6,181.6L185.0,181.1L183.9,181.0L183.4,180.4L183.1,179.2L182.1,179.3L180.6,178.7L180.1,178.3L177.9,178.0L177.4,177.5L178.1,177.0L176.4,176.9L175.0,178.0L174.3,178.0L174.0,178.5L173.1,178.8L172.4,178.6L173.4,177.9L173.9,177.2L174.7,176.7L175.7,176.3L177.0,176.1ZM210.9,201.5L212.0,201.3L212.3,201.3L212.2,202.9L210.7,203.1L210.4,202.9L210.9,202.3Z"/>
+          <path id="rg-eu" class="region" d="M338.2,67.8L338.6,67.3L340.4,67.3L342.0,67.8L346.2,68.9L343.2,69.5L342.7,70.6L341.7,70.9L341.3,72.2L339.8,72.2L337.0,71.3L338.1,70.7L336.2,70.3L333.6,69.0L332.6,67.8L335.8,67.3L336.5,67.8ZM353.1,90.5L350.8,91.0L349.6,92.3L350.0,93.4L347.9,94.8L345.4,96.4L344.6,99.0L345.8,100.3L347.3,101.4L346.2,103.5L344.7,103.9L344.4,107.1L343.7,108.9L341.9,108.7L341.2,110.3L339.4,110.4L338.8,108.5L337.4,106.4L336.1,103.7L335.1,102.5L332.3,104.7L330.4,105.2L328.3,104.2L327.7,102.2L327.1,97.9L328.4,96.7L332.1,95.1L334.7,93.2L337.1,90.7L340.1,87.3L342.2,86.0L345.7,83.8L348.5,83.0L350.7,83.1L352.5,81.7L354.9,81.8L357.2,81.4L361.6,82.7L360.0,83.2L361.7,84.2L359.6,84.9L358.5,85.1L358.6,86.3L360.9,87.5L359.9,88.8L361.9,90.9L361.3,92.4L362.8,93.8L362.5,94.9L364.8,96.2L364.4,97.1L363.3,98.2L360.6,100.6L358.0,100.7L355.6,101.4L353.3,101.8L352.3,100.8L350.8,100.2L350.9,98.3L350.0,96.7L350.5,95.6L351.6,94.5L354.6,92.5L355.4,92.1L355.2,91.4ZM352.9,67.2L351.3,68.0L347.8,68.2L344.2,68.0L343.9,67.6L342.2,67.5L340.7,66.9L344.3,66.5L346.2,66.8L347.3,66.4L350.4,66.7ZM350.5,70.5L347.8,71.2L345.6,70.8L346.4,70.4L345.5,69.9L348.0,69.6L348.6,70.2ZM228.2,215.1L227.2,217.0L226.6,218.5L225.9,219.3L225.0,219.4L224.8,218.9L224.4,218.8L223.9,219.3L223.1,218.9L223.6,218.0L223.7,217.1L224.0,216.2L223.4,215.0L223.3,213.6L224.2,211.8L224.8,212.1L226.1,212.5L228.0,214.3ZM334.9,111.1L335.0,111.8L336.5,112.3L336.6,113.0L338.1,112.6L338.9,112.1L340.7,112.9L341.4,113.5L342.4,112.9L344.7,112.0L346.6,111.3L348.1,111.7L348.3,112.1L349.7,112.2L351.6,112.4L354.4,112.4L354.2,111.9L354.3,111.3L353.6,111.0L352.0,110.7L351.5,109.1L351.4,107.6L352.0,106.4L353.3,105.8L354.6,107.2L355.8,107.2L355.9,105.7L355.9,104.6L355.4,104.8L354.4,104.1L354.1,103.1L355.9,102.5L357.7,102.3L359.3,102.6L360.8,102.5L361.1,102.8L360.2,103.9L360.9,105.7L360.4,106.3L361.2,106.7L361.5,107.7L362.1,108.8L363.8,109.3L364.0,109.8L364.8,109.5L366.3,110.0L366.6,110.9L366.4,111.4L367.6,112.7L368.2,113.1L368.2,113.4L369.3,113.7L369.8,114.3L369.3,114.7L368.0,114.6L367.8,114.8L368.2,115.5L368.8,116.7L369.4,116.8L369.7,116.4L370.2,116.5L371.8,116.3L372.9,117.4L372.6,117.8L372.8,118.4L374.1,118.5L374.8,119.3L374.8,119.7L376.9,120.4L378.0,120.1L379.2,121.1L380.1,121.0L382.5,121.7L382.6,122.3L382.2,123.3L382.7,124.4L382.6,125.1L381.1,125.2L380.4,125.8L380.5,126.7L379.2,126.8L378.3,127.5L376.8,127.6L375.5,128.4L375.8,129.4L375.5,129.4L375.3,129.0L374.7,128.9L373.5,128.5L373.2,129.0L372.9,128.7L370.4,128.2L370.2,127.5L368.8,127.7L368.3,128.8L367.3,130.3L367.4,130.9L366.6,131.3L366.1,131.1L366.0,133.6L365.2,134.4L364.8,135.9L365.4,137.0L364.0,136.8L362.4,137.4L363.3,137.9L362.9,139.2L362.5,139.5L361.5,139.4L360.6,139.2L358.7,139.7L359.9,140.9L359.1,141.2L358.2,141.2L357.3,140.2L357.0,140.6L357.5,141.8L358.4,142.8L357.8,143.3L358.8,144.2L359.6,144.8L359.7,146.0L358.2,145.4L358.7,146.5L357.7,146.7L358.5,148.5L357.4,148.5L355.9,147.6L355.2,146.0L354.8,144.6L354.1,143.7L353.2,142.5L353.0,141.9L352.7,141.8L352.7,141.3L351.7,140.6L351.5,139.7L351.6,138.3L351.7,137.6L351.4,137.3L351.1,137.1L350.6,136.5L349.8,136.1L348.3,135.3L347.3,134.6L345.8,134.0L344.3,132.5L344.6,132.3L343.9,131.5L343.8,130.8L342.7,130.5L342.3,131.3L341.8,130.7L341.8,130.0L341.8,129.9L342.2,129.7L340.9,129.4L339.6,130.2L339.8,131.2L339.6,131.7L340.2,132.8L341.8,133.8L342.7,135.5L344.6,137.1L345.8,137.1L346.2,137.6L345.8,138.0L347.3,138.7L348.6,139.3L350.0,140.4L350.2,140.8L350.0,141.5L349.0,140.6L347.5,140.2L346.9,141.6L348.2,142.3L348.0,143.4L347.4,143.5L346.6,145.3L345.9,145.4L345.9,144.8L346.1,143.7L346.5,143.3L345.8,142.1L345.2,141.0L344.5,140.8L344.0,139.9L342.9,139.5L342.2,138.7L341.0,138.6L339.6,137.6L338.1,136.3L336.9,135.1L336.4,133.1L335.6,132.9L334.2,132.2L333.5,132.5L332.6,133.4L331.9,133.6L330.5,134.7L327.3,134.2L325.0,134.9L324.8,136.1L324.9,137.3L323.4,138.6L321.3,139.1L321.1,139.8L320.1,140.9L319.5,142.6L320.1,143.7L319.2,144.7L318.8,146.0L317.6,146.4L316.4,148.0L314.3,148.0L312.7,148.0L311.6,148.7L311.0,149.5L310.2,149.3L309.6,148.6L309.1,147.4L307.6,147.1L306.9,147.6L306.0,147.4L305.2,147.6L305.5,146.0L305.4,144.7L304.6,144.5L304.2,143.7L304.4,142.4L305.1,141.6L305.2,140.8L305.6,139.6L305.6,138.7L305.3,138.0L305.3,137.3L305.4,135.8L304.8,134.9L307.1,133.5L309.1,133.8L311.2,133.8L312.9,134.2L314.3,134.1L316.9,134.1L317.7,132.9L318.1,128.9L316.4,126.8L315.3,125.7L312.9,125.0L312.7,123.5L314.8,123.1L317.4,123.6L316.9,121.3L318.4,122.2L322.0,120.6L322.5,119.0L323.8,118.6L325.1,118.2L325.9,117.7L327.1,114.8L329.2,114.0L330.5,114.0L330.8,113.6L332.0,113.5L332.3,113.9L333.3,113.0L332.9,112.2L332.8,111.1L332.2,110.1L332.0,108.1L332.2,107.6L332.7,107.0L334,106.9L334.4,106.4L335.6,105.8L335.6,106.8L335.2,107.4L335.4,108.0L336.2,108.2L335.9,109.0L335.5,108.8L334.5,110.1ZM334.1,135.8L335.1,135.0L335.5,136.7L335.0,138.3L334.2,137.9L333.8,136.5ZM363.9,150.8L363.7,151.4L361.3,151.6L361.3,151.3L359.2,150.9L359.5,150.0L360.5,150.7L361.7,150.6L363.0,150.7L363.0,151.1ZM310.5,113.3L310.7,114.7L309.5,116.4L306.8,117.6L304.6,117.3L305.9,115.2L305.2,113.2L307.4,111.7L308.5,110.8L309.8,110.7L311.4,111.9ZM344.3,145.0L345.6,144.8L345.1,146.4L345.3,147.0L345.1,148.1L343.7,147.3L342.9,147.1L340.5,146.1L340.7,145.0L342.7,145.2ZM334.2,139.3L335.0,138.7L336.0,140.1L335.9,142.8L335.1,142.7L334.5,143.4L333.8,142.8L333.7,140.4L333.3,139.2ZM338.5,108.9L339.0,109.9L338.2,111.4L336.6,110.4L336.3,109.6ZM315.2,114.2L315.2,114.2L315.5,113.0L314.5,111.8L314.5,111.8L312.6,111.5L312.3,110.9L312.9,110.1L312.4,109.5L311.5,110.5L311.5,108.6L310.8,107.6L311.4,105.6L312.6,104.1L313.8,104.3L315.5,104.1L313.9,106.2L315.4,105.9L317.0,105.9L316.6,107.5L315.3,109.2L316.8,109.3L316.9,109.5L318.3,111.8L319.3,112.1L320.2,114.3L320.7,115.1L322.5,115.5L322.3,116.7L321.6,117.3L322.2,118.3L320.8,119.4L318.7,119.3L316.1,119.9L315.4,119.5L314.3,120.4L312.9,120.2L311.8,121.0L311.0,120.6L313.3,118.5L314.7,118.1L314.7,118.1L312.3,117.7L311.8,116.9L313.5,116.3L312.7,115.3L313.0,114.0ZM299.9,89.7L299.5,90.9L300.9,92.1L299.0,93.5L294.8,94.7L293.5,95.0L291.7,94.8L287.9,94.2L289.4,93.4L286.4,92.5L289.0,92.2L289.0,91.6L286.1,91.2L287.2,90.0L289.4,89.8L291.4,91.0L293.6,90.0L295.3,90.5L297.6,89.6ZM374.7,151.2L374.8,151.1L375.0,150.6L376.2,150.7L377.6,150.1L376.6,150.9L376.8,151.3L376.8,151.5L375.2,152.3L374.3,152.1L373.9,151.2Z"/>
+          <path id="rg-af" class="region" d="M389.5,233.3L388.7,235.8L388.8,237.0L389.9,237.7L389.9,238.3L389.4,239.5L389.5,240.1L389.4,241.1L389.9,242.4L390.6,244.4L391.2,244.9L391.5,245.8L391.3,247.9L391.5,249.7L391.4,252.9L391.7,253.9L391.1,255.4L390.3,256.8L389.1,258.1L387.5,258.9L385.5,259.9L383.4,262.1L382.7,262.5L381.4,263.9L380.6,264.4L380.4,265.9L381.1,267.4L381.4,268.6L381.4,269.3L381.7,269.2L381.5,271.2L381.2,272.2L381.5,272.5L381.2,273.4L380.5,274.1L379.0,274.8L376.8,275.9L376.0,276.7L376.1,277.6L376.5,277.7L376.3,278.8L375.8,280.3L375.4,282.0L374.9,283.0L373.7,284.0L373.3,284.3L372.5,285.4L372.0,286.4L370.9,287.9L368.8,290.0L367.5,291.3L366.2,292.2L364.4,293.0L363.5,293.1L363.2,293.7L362.2,293.4L361.4,293.8L359.6,293.4L358.5,293.6L357.9,293.5L356.1,294.3L354.6,294.7L353.5,295.5L352.8,295.5L352.1,294.8L351.6,294.7L350.9,293.8L350.8,294.1L350.6,293.5L350.7,292.3L350.2,290.9L350.7,290.6L350.8,289.0L349.8,287.0L349.0,285.3L349.0,285.3L347.9,282.6L346.7,281.0L346.0,279.5L345.7,277.5L345.4,276.0L344.9,272.8L344.9,270.3L344.7,269.2L344.1,268.4L343.2,266.6L342.3,264.2L342.0,262.9L340.6,260.9L340.5,259.3L340.4,258.0L340.6,256.2L341.3,254.3L341.4,253.4L342.0,251.5L342.4,250.7L343.4,249.3L344.0,248.4L344.2,246.9L344.1,245.7L343.6,245.0L343.2,243.7L342.7,242.5L342.8,242.1L343.4,241.3L342.9,239.3L342.5,237.9L341.6,236.6L341.8,236.2L341.6,235.6L341.1,234.0L339.6,231.8L337.8,229.8L336.7,228.1L335.6,225.9L335.6,225.3L336.0,224.6L336.5,223.1L336.8,221.6L336.5,221.3L337.1,219.0L337.3,217.3L336.7,216.0L335.8,215.6L335.5,214.7L335.0,214.4L335.0,213.9L333.2,214.6L332.5,214.5L331.8,214.9L330.4,214.9L329.5,213.6L328.9,212.1L327.6,210.8L326.3,210.8L324.7,210.8L323.3,211.0L321.8,211.5L319.0,212.7L318.1,213.4L316.5,214.0L314.9,213.4L314.1,213.4L312.8,213.0L311.7,213.0L309.6,213.4L308.4,214.0L306.6,214.7L306.3,214.7L305.8,214.7L304.0,213.7L302.4,212.2L300.9,211.0L299.7,209.7L299.2,209.6L297.9,208.7L297.0,207.6L296.7,206.9L296.5,205.4L295.7,204.1L295.1,203.3L294.6,203.1L294.2,202.7L294.0,201.7L293.7,201.3L293.2,201.0L292.3,200.1L291.5,200.0L291.2,199.4L291.2,199.1L290.6,198.6L290.5,198.2L290.3,196.6L290.5,195.7L289.8,194.1L289,193.4L289.7,193.0L290.6,191.5L291.0,190.5L290.9,189.3L291.4,188.3L291.7,186.4L291.6,184.3L291.4,183.3L291.6,182.3L291.1,181.3L290.3,180.4L290.4,179.5L290.5,178.6L291.1,178.0L291.7,176.9L291.7,176.2L292.3,174.8L293.3,173.5L293.9,173.1L294.4,171.9L294.5,170.8L295.1,169.5L296.3,168.8L297.4,166.7L297.5,166.6L298.4,165.9L300.0,165.6L301.3,164.2L302.2,163.7L303.7,161.9L303.3,159.4L304.0,157.6L304.3,156.5L305.4,155.1L307.1,154.1L308.3,153.3L309.5,151.1L310.1,149.9L311.3,149.9L312.3,150.8L313.9,150.6L315.6,151.1L316.3,151.1L317.9,150.0L319.7,149.6L320.8,148.8L322.4,148.1L325.2,147.8L327.9,147.6L328.8,147.9L330.3,147.1L332.1,147.1L332.8,147.6L333.9,147.4L335.7,146.6L336.9,146.8L336.9,147.9L338.2,147.1L338.4,147.5L337.6,148.5L337.6,149.5L338.2,150.0L338.0,151.8L337.0,152.8L337.3,154.0L338.2,154.0L338.6,155.0L339.3,155.3L341.3,156.0L342.0,155.8L343.4,156.2L345.7,157.1L346.6,158.9L348.1,159.3L350.5,160.2L352.4,161.2L353.2,160.7L354.0,159.7L353.5,158.2L354.0,157.2L355.1,156.2L356.3,155.9L358.6,156.3L359.2,157.3L359.8,157.3L360.4,157.6L362.1,157.9L362.5,158.5L364.8,158.5L366.5,159.1L368.2,159.7L369.0,160.0L370.3,159.3L370.9,158.7L372.4,158.6L373.6,158.8L374.2,159.9L374.5,159.2L375.9,159.7L377.2,159.8L378.0,159.3L379.2,162.3L379.4,162.8L379.0,163.7L378.8,165.2L378.4,166.3L378.0,166.7L377.4,166.0L376.6,165.1L375.1,162.1L375.0,162.3L375.8,164.5L377.1,166.6L378.6,169.8L379.3,170.9L380.0,172.1L381.7,174.4L381.3,174.7L381.5,176.1L383.6,177.9L384.0,178.3L384.7,180.4L384.3,180.8L384.7,182.9L385.5,185.3L386.2,185.9L387.2,186.6L388.3,189.0L388.9,190.9L389.9,191.9L392.4,193.8L393.4,195.0L394.5,196.2L395.0,196.9L395.9,197.5L396.4,198.2L396.4,199.0L395.4,199.5L396.1,200.1L396.7,200.5L397.1,201.3L397.9,202.2L398.8,202.2L400.5,201.7L402.4,201.4L403.9,200.8L404.8,200.6L405.4,200.3L406.4,200.2L407.0,200.2L407.8,199.8L408.7,199.6L409.5,198.9L410.2,198.9L410.2,199.5L410.1,200.7L410.2,201.8L409.8,202.5L409.4,204.7L408.7,207.0L407.6,209.7L406.2,212.7L404.7,215.0L402.7,217.8L400.9,219.5L398.3,221.5L396.6,223.1L394.7,225.6L394.2,226.6L393.8,227.1L392.6,227.9L392.1,228.8L391.5,229.0L391.2,230.4L390.6,231.2L390.3,232.6ZM407.3,249.3L407.8,250.2L408.1,251.5L408.3,254.0L408.7,255.0L408.4,256.0L408.1,256.6L407.6,255.4L407.2,256.0L407.4,257.5L407.2,258.4L406.7,258.9L406.5,260.6L405.6,263.0L404.5,265.9L403.1,269.8L402.2,272.7L401.2,275.1L399.7,275.6L398.1,276.4L397.2,275.9L395.9,275.2L395.5,274.1L395.6,272.2L395.1,270.6L395.1,269.1L395.5,267.6L396.3,267.2L396.4,266.6L397.3,265.0L397.6,263.7L397.2,262.7L397.0,261.4L397.0,259.5L397.6,258.3L398.0,257.0L398.8,257.0L399.8,256.5L400.5,256.2L401.3,256.1L402.4,255.0L403.9,253.7L404.5,252.7L404.3,251.8L405.0,252.0L406.1,250.6L406.2,249.3L406.8,248.4Z"/>
+          <path id="rg-me" class="region" d="M441.0,142.3L441.9,144.2L442.4,144.0L443.5,144.5L443.7,145.3L444.2,146.5L442.5,146.4L441.3,146.3L440.5,147.2L439.8,147.4L439.3,147.9L438.5,147.2L438.3,145.5L437.7,145.4L437.8,144.7L436.8,144.3L436.2,145.0L436.2,145.8L436.1,146.1L435.1,146.1L434.7,147.0L434.1,146.6L433.0,147.3L432.5,147.0L431.1,146.6L430.2,146.6L430.0,145.3L427.6,144.4L425.6,143.4L424.4,142.5L422.2,141.0L420.9,138.9L420.3,138.5L418.5,138.6L417.8,138.2L417.3,136.6L414.8,135.5L413.7,136.7L412.5,137.4L413.0,138.4L411.2,138.5L410.3,138.6L408.9,137.0L407.7,136.4L405.9,136.8L405.3,137.5L405.1,137.0L405.4,136.1L404.9,135.4L402.9,134.7L401.8,132.9L400.8,132.4L400.6,131.7L402.2,131.9L402.0,130.4L403.3,130.1L404.7,130.4L404.6,128.4L404.0,127.2L402.5,127.3L401.0,126.8L399.4,127.7L398.0,128.1L397.1,127.8L397.0,126.7L395.8,125.4L394.6,125.5L393.0,124.1L393.6,122.6L393.0,122.2L393.8,120.0L395.6,121.1L395.5,119.7L398.2,117.5L400.6,117.5L404.3,118.8L406.4,119.6L407.8,118.8L410.2,118.8L412.5,119.8L412.8,119.2L415.0,119.3L415.1,118.4L412.2,117.0L413.4,116.0L413,115.5L414.3,115.0L412.7,113.7L413.2,113.0L418.7,112.3L419.3,111.8L422.8,111.1L423.9,110.3L426.7,110.7L427.9,112.7L429.3,112.3L431.5,112.9L431.8,114.0L433.2,113.9L436.3,112.0L436.0,112.7L438.5,114.2L443.9,119.2L444.3,118.1L446.9,119.3L448.9,118.8L449.9,119.1L451.1,120.3L452.4,120.6L453.4,121.5L455.3,121.2L456.6,122.4L455.9,123.8L454.7,124.0L455.4,126.0L454.8,126.9L451.5,126.2L451.6,129.8L450.9,130.3L448.0,131.1L450.6,134.6L449.6,135.2L450.1,136.3L450.0,136.8L447.8,137.9L447.4,138.7L445.4,139.0L445.2,140.3L443.3,140.0L442.3,140.4L441.0,141.4L441.4,141.8ZM379.4,162.8L379.2,162.3L378.0,159.3L378.4,158.6L378.3,158.5L378.7,157.5L378.9,155.9L379.1,155.4L379.1,155.4L379.5,153.7L380.2,152.3L380.2,152.2L379.9,150.6L380.2,149.7L379.5,148.8L380.1,148.0L379.1,148.2L377.6,147.7L376.6,148.9L374.1,149.2L372.6,148.1L370.8,148.0L370.5,148.8L369.4,149.1L367.7,148.0L365.9,148.0L364.7,146.0L363.4,144.8L364.1,143.2L362.9,142.2L364.6,140.3L367.1,140.2L367.6,138.6L370.8,138.9L372.6,137.6L374.4,137.0L377.1,137.0L380.1,138.4L382.5,139.2L384.4,138.9L385.8,139.1L387.6,138.0L387.7,137.1L387.1,135.7L386.0,135.0L385.1,134.7L384.4,134.1L384.6,133.9L386.0,134.2L388.4,134.6L390.8,135.5L391.1,135.9L392.1,135.6L393.6,136.0L394.3,136.9L395.4,137.3L395.8,137.4L397.2,138.6L397.9,138.8L398.1,138.3L398.9,137.4L400.0,138.5L401.1,140.0L401.9,140.1L402.5,140.6L401.1,140.8L401.1,142.4L401.0,143.1L400.4,143.6L400.7,144.6L400.3,144.7L399.1,143.6L399.5,142.6L398.9,142.0L398.3,142.2L396.6,143.7L396.0,143.7L394.8,143.5L393.8,142.5L393.5,141.7L392.4,142.3L393.3,144.7L393.1,145.3L394.2,147.0L395.6,149.4L396.8,150.0L397.1,151.3L396.4,152.0L396.2,153.6L397.6,155.5L399.8,156.7L400.9,158.3L400.8,159.8L401.4,159.8L401.5,160.9L402.6,161.9L401.6,161.8L402.0,162.8L401.9,163.2L402.7,164.8L403.5,166.6L404.4,167.0L404.8,167.8L406.1,168.6L406.3,169.5L406.2,170.2L406.5,170.9L407.0,171.5L407.3,172.1L407.6,172.7L407.4,171.1L407.7,170.1L408.2,169.8L408.7,170.5L408.9,171.7L408.7,172.9L409.1,173.7L409.4,173.6L409.5,174.2L410.8,173.8L412.2,173.9L413.3,174.0L414.3,172.6L415.5,171.2L416.4,170.0L416.8,169.3L417.0,169.4L417.0,170.3L416.8,170.7L417.2,172.3L418.2,173.7L419.2,174.5L420.5,174.7L421.6,175.1L422.5,176.3L423.0,177.0L423.7,177.2L423.7,177.7L423.2,178.9L423.0,179.5L422.4,180.2L421.8,181.6L421.0,181.5L420.7,182.0L420.6,183.0L420.9,184.4L420.8,184.7L419.9,184.7L418.9,185.4L418.8,186.4L418.5,186.9L417.4,186.8L416.7,187.4L416.8,188.2L416.0,188.8L415.0,188.6L413.9,189.3L413.1,189.4L411.9,189.9L411.6,190.9L411.6,191.6L409.9,192.4L407.2,193.4L405.7,194.9L404.9,195.0L404.4,194.8L403.4,195.7L402.3,196.1L400.8,196.2L400.4,196.3L400.0,196.9L399.5,197.0L399.3,197.5L398.4,197.5L397.9,197.8L396.6,197.7L396.1,196.5L396.1,195.3L395.8,194.7L395.4,193.2L394.8,192.4L395.2,192.3L395.0,191.3L395.1,190.9L395.0,190.0L394.7,189.1L394.2,188.5L394.0,187.7L393.0,187.0L392.0,185.2L391.4,183.5L390.1,182.1L389.3,181.8L388.0,179.8L387.7,178.4L387.7,177.2L386.5,174.9L385.7,174.0L384.7,173.6L384.0,172.4L384.1,172.0L383.5,170.9L383.0,170.4L382.2,168.9L381.0,167.2L380.0,165.8L379.2,165.8L379.4,164.7L379.4,164.0L379.5,163.1ZM362.4,137.4L364.0,136.8L365.4,137.0L365.7,137.8L367.2,138.5L366.9,139.0L365.0,139.1L364.4,139.7L363.1,140.8L362.5,139.9L362.5,139.5L362.9,139.2L363.3,137.9Z"/>
+          <path id="rg-sa" class="region" d="M474.5,178.2L474.4,179.0L473.2,179.0L471.2,179.4L471.5,180.9L470.7,182.2L468.4,183.6L466.8,186.0L465.6,187.3L464.0,188.6L464.1,189.6L463.3,190.1L461.8,190.8L461.0,190.9L460.6,192.5L461.2,195.2L461.5,196.9L460.9,198.9L461.1,202.4L460.2,202.5L459.5,204.0L460.1,204.7L458.5,205.3L458.0,206.7L457.3,207.3L455.5,205.4L454.6,202.5L453.7,200.4L453.1,199.4L452.0,197.5L451.3,194.9L450.9,193.6L449.1,190.8L447.9,186.8L447.1,184.1L446.8,181.6L446.2,179.7L443.9,180.9L442.6,180.7L440.0,178.2L440.8,177.4L440.2,176.6L437.9,174.9L436.6,174.3L435.8,172.8L434.3,171.3L431.2,171.7L428.4,171.7L426.0,172.0L426.3,169.6L428.7,168.5L428.4,167.6L427.5,167.2L427.2,165.4L425.4,164.5L424.6,163.2L423.6,162.1L424.8,160.3L424.4,158.9L423.1,158.6L422.8,157.3L421.9,155.6L422.5,154.5L421.7,154.2L421.9,152.7L422.1,150.1L423.9,150.9L425.1,150.6L425.3,149.7L426.6,149.4L427.4,148.7L427.4,147.1L428.7,146.7L428.8,146.0L429.7,146.5L430.2,146.6L431.1,146.6L432.5,147.0L433.0,147.3L434.1,146.6L434.7,147.0L435.1,146.1L436.1,146.1L436.2,145.8L436.2,145.0L436.8,144.3L437.8,144.7L437.7,145.4L438.3,145.5L438.5,147.2L439.3,147.9L439.8,147.4L440.5,147.2L441.3,146.3L442.5,146.4L444.2,146.5L444.6,147.0L446.1,148.0L447.0,149.6L449.9,150.4L452.3,152.8L452.5,154.5L453.4,155.6L453.6,156.6L452.3,156.4L453.2,158.7L455.2,160.0L457.8,161.4L458.4,160.9L459.9,161.6L461.9,162.9L463.0,163.2L463.7,164.2L465.1,164.6L466.7,165.5L468.7,166.0L470.8,166.2L471.7,165.8L472.2,167.4L473.0,165.8L473.8,165.3L475.2,165.8L476.1,165.8L476.9,166.4L478.3,166.1L479.5,164.6L481.2,163.3L482.7,163.8L483.7,162.9L484.8,164.2L484.4,165.1L486.4,165.4L486.7,166.2L486.1,166.6L486.6,167.8L485.3,167.5L483.3,168.9L483.6,170.1L483.0,171.8L483.1,172.8L482.7,174.5L481.3,174.0L481.6,176.2L481.3,176.9L481.6,177.8L480.9,178.3L481.1,179.7L480.4,179.4L480.8,181.1L480.1,180.0L479.9,179.0L479.4,178.0L478.4,176.8L476.8,176.7L477.1,177.5L476.8,178.7L476.0,178.3L475.8,178.6L475.2,178.4ZM464.9,208.2L464.7,210.3L464.0,210.9L462.5,211.4L461.6,209.8L461.1,206.8L461.7,203.5L463.0,204.6L463.9,206.1Z"/>
+          <path id="rg-sea" class="region" d="M570.4,229.0L570.1,235.7L569.6,242.4L568.2,240.7L566.4,240.3L565.9,240.9L563.7,241.0L564.6,239.3L565.7,238.7L565.4,236.5L564.7,234.8L561.4,233.0L559.9,232.8L557.3,230.9L556.8,231.9L556.1,232.1L555.7,231.4L555.7,230.5L554.4,229.5L556.3,228.7L557.6,228.8L557.5,228.2L554.9,228.2L554.2,227.0L552.6,226.6L551.9,225.6L554.3,225.1L555.2,224.4L558.0,225.3L558.3,226.0L558.7,229.4L560.5,230.6L562.1,228.4L564.1,227.2L565.7,227.2L567.2,227.9L568.5,228.6ZM541.3,243.0L540.0,244.5L538.4,245.0L538.3,244.7L538.5,244.0L539.4,242.8L541.2,241.9L541.4,241.5L543.0,241.0L544.3,240.9L544.8,240.7L545.5,240.9L544.8,241.5L542.9,242.4ZM557.9,237.8L557.8,236.3L558.2,235.6L558.6,234.9L559.0,235.5L558.9,236.4ZM524.8,212.5L526.1,211.0L526.9,209.4L527.6,209.4L528.6,210.5L528.7,211.4L529.9,211.9L531.4,212.5L531.4,213.4L530.2,213.5L530.5,214.5L529.2,215.2L528.3,217.0L529.7,219.0L529.4,219.9L531.4,221.8L529.3,222.1L528.7,223.5L528.8,225.3L527.0,226.7L527.0,228.8L526.2,231.9L525.9,231.2L523.9,232.1L523.2,230.9L522.0,230.7L521.1,230.1L519.0,230.8L518.4,229.8L517.2,229.9L515.7,229.7L515.5,226.9L514.6,226.4L513.8,224.6L513.5,222.8L513.7,220.9L514.8,219.5L516.1,220.2L517.5,219.9L517.8,218.1L518.5,217.7L520.6,217.3L521.9,215.7L522.7,214.4L523.4,213.6ZM549.8,229.4L551.7,230.0L552.3,231.6L550.8,230.7L549.3,230.6L548.3,230.7L547.1,230.6L547.5,229.5ZM545.2,231.5L544.0,231.1L543.7,230.2L545.5,230.1L545.9,230.8ZM547.2,219.2L547.4,220.3L548.4,220.5L548.6,221.3L548.5,223.1L547.6,222.9L547.3,224.2L548.1,225.3L547.6,225.5L546.9,224.2L546.3,221.6L546.7,219.9ZM538.4,221.9L540.4,221.8L542.2,220.3L542.5,220.7L541.1,222.8L539.7,223.2L538.0,222.8L535.1,222.9L533.5,223.2L533.3,224.7L534.8,226.6L535.8,225.6L539.1,224.9L539.0,225.9L538.2,225.6L537.4,226.8L535.8,227.6L537.4,230.2L537.1,230.9L538.6,233.3L538.5,234.6L537.5,235.2L536.9,234.5L537.8,232.8L536.0,233.6L535.6,233.1L535.9,232.3L534.6,231.1L534.8,229.1L533.6,229.7L533.7,232.1L533.6,235.0L532.5,235.3L531.8,234.7L532.4,232.8L532.2,230.8L531.4,230.8L530.9,229.4L531.7,228.1L532.0,226.4L532.9,223.3L533.2,222.5L534.7,221.0L536.1,221.6ZM532.7,244.8L530.5,243.3L532.1,242.9L533.0,243.5L533.6,244.2L533.4,244.7ZM534.8,241.2L536.0,241.1L537.7,240.3L537.3,241.5L534.6,242.0L532.3,241.8L532.3,241.0L533.8,240.6ZM529.4,240.9L530.5,240.7L530.9,241.6L528.8,242.0L527.6,242.3L526.6,242.2L527.3,241.1L528.3,241.0L528.8,240.3ZM512.4,236.9L512.6,237.6L515.9,237.8L516.4,237.0L519.6,237.9L520.2,239.3L522.8,239.7L524.9,240.9L522.8,241.7L520.9,240.8L519.3,240.9L517.5,240.7L515.9,240.4L513.9,239.6L512.6,239.4L511.8,239.6L508.6,238.8L508.4,237.9L506.8,237.7L508.1,235.8L510.2,235.9L511.6,236.7ZM505.4,225.9L505.7,227.3L506.3,228.5L507.6,228.7L508.4,230.0L507.9,232.5L507.7,235.7L505.7,235.7L504.3,234.0L502.1,232.3L501.4,231.1L500.1,229.4L499.2,227.9L497.9,225.0L496.3,223.3L495.8,221.5L495.1,219.9L493.5,218.6L492.5,216.9L491.2,215.7L489.2,213.4L489.0,212.4L490.2,212.5L492.9,212.9L494.6,214.9L496.0,216.3L497.0,217.1L498.7,219.3L500.6,219.4L502.1,220.8L503.1,222.5L504.5,223.5L503.7,225.1L504.8,225.8ZM497.5,210.4L496.7,209.6L496.3,208.6L495.3,207.4L494.4,206.4L494.2,207.6L493.8,206.5L493.9,205.2L494.3,203.2L494.0,201.7L494.4,200.1L493.7,198.9L493.6,196.7L492.8,195.6L491.9,193.1L491.3,190.5L490.3,188.8L489.3,189.9L487.5,191.3L486.5,191.1L485.3,190.7L485.6,188.1L485.0,186.2L483.3,183.8L483.4,183.0L482.3,182.8L480.8,181.1L480.4,179.4L481.1,179.7L480.9,178.3L481.6,177.8L481.3,176.9L481.6,176.2L481.3,174.0L482.7,174.5L483.1,172.8L483.0,171.8L483.6,170.1L483.3,168.9L485.3,167.5L486.6,167.8L486.1,166.6L486.7,166.2L486.4,165.4L487.3,165.2L488.2,166.5L489.0,167.0L489.4,168.5L489.7,170.2L488.5,172.0L488.7,174.4L490.5,174.1L491.3,176.0L492.4,176.4L492.2,178.1L493.7,178.9L494.5,179.3L495.7,178.7L495.9,179.5L496.1,180.0L497.0,180.1L496.4,177.7L497.2,177.4L498.0,176.9L499.4,176.9L501.1,176.7L502.3,175.6L503.3,176.3L505.0,176.7L504.9,177.9L505.9,178.7L507.8,179.3L505.8,181.0L504.7,183.0L504.5,184.4L506.2,186.6L508.2,189.3L510.0,190.6L511.3,192.2L512.6,196.0L512.8,199.7L511.4,201.0L509.5,202.3L508.2,204.1L506.2,206.0L505.4,204.7L505.8,203.3L504.4,202.1L502.9,201.8L502.1,200.7L501.0,198.6L499.3,197.7L497.8,197.7L497.9,196.1L496.3,196.1L496.4,198.3L495.8,201.4L495.3,203.2L495.6,204.7L496.7,204.7L497.6,206.6L498.0,208.4L499.1,209.6L500.1,209.8L501.1,210.9L501.5,211.1L502.6,212.3L503.4,213.7L503.6,215.1L503.4,216.0L503.6,216.7L503.8,217.9L504.4,218.5L505.2,220.3L505.1,221.0L503.9,221.1L502.2,219.6L500.0,218.0L499.8,216.9L498.7,215.6L498.4,213.9L497.8,212.7L497.9,211.2ZM533.1,197.5L532.0,196.0L533.5,196.0L534.2,196.8L533.9,198.6ZM536.8,203.1L537.2,202.6L537.2,201.3L538.2,201.2L538.0,202.5L539.1,200.6L539.2,202.5L538.6,203.2L538.2,204.5L537.7,205.1L536.5,203.7ZM543.8,206.4L544.1,207.7L544.3,208.9L543.8,210.8L543.0,208.7L542.2,209.7L542.9,211.2L542.5,212.2L540.3,211.0L539.7,209.5L540.2,208.5L539.0,207.6L538.5,208.4L537.6,208.3L536.4,209.5L536.1,208.9L536.6,207.1L537.7,206.6L538.6,205.8L539.3,206.7L540.6,206.2L540.8,205.2L542.1,205.2L541.8,203.6L543.3,204.6L543.6,205.6ZM529.7,204.5L527.5,206.5L528.2,205.0L529.4,203.7L530.3,202.3L531.0,200.3L531.5,202.0L530.5,203.1ZM534.0,186.1L533.8,187.0L534.7,188.5L534.5,190.2L533.6,190.9L533.6,192.5L534.2,194.2L535.2,194.4L535.9,194.2L538.3,195.3L538.2,196.4L538.9,196.9L538.8,197.9L537.3,196.9L536.5,195.8L536.2,196.5L534.9,195.3L533.3,195.6L532.4,195.2L532.4,194.3L532.8,193.8L532.2,193.3L532.1,194.0L531.1,192.9L530.7,192.0L530.3,190.0L531.1,190.7L530.8,187.4L531.0,185.6L532.1,185.6L533.3,186.2L533.7,185.6ZM535.5,200.2L535.1,199.2L536.2,199.8L537.4,199.8L537.4,200.7L536.7,201.6L535.6,202.2L535.5,201.2ZM541.4,198.6L542.2,200.9L540.8,200.4L540.9,201.1L541.4,202.4L540.7,202.8L540.4,201.4L539.9,201.3L539.5,200.0L540.5,200.2L540.4,199.4L539.1,197.8L540.8,197.9Z"/>
+          <path id="rg-ea" class="region" d="M528.7,145.8L528.8,145.6L529.5,145.7L529.8,144.7L530.9,144.6L531.6,144.5L531.6,144.0L534.0,146.4L535.0,147.8L536.0,150.1L535.8,151.3L534.4,151.7L533.4,152.5L532.0,152.7L531.4,151.6L531.1,150.0L529.5,147.9L530.6,147.5ZM457.1,122.3L458.6,121.9L460.9,120.2L462.9,119.3L464.5,119.9L466.1,119.9L467.6,120.9L469.1,120.9L471.6,121.4L472.5,120.0L471.3,118.9L472.0,116.8L474.1,117.6L475.6,117.9L477.7,118.4L478.7,119.9L481.3,120.7L482.6,120.3L484.4,120.1L486.1,120.3L488.1,121.3L489.6,122.3L491.0,122.3L493.1,122.6L494.3,122.1L496.2,121.8L497.7,120.4L498.8,120.6L500.0,121.3L501.7,121.1L501.8,122.6L501.7,124.6L502.5,125.4L503.3,125.2L505.0,125.5L505.8,124.7L507.4,125.4L509.6,126.8L509.8,127.5L508.4,127.3L506.2,127.5L505.4,128.1L504.9,129.5L502.8,130.2L501.7,131.3L499.9,130.9L498.9,130.7L498.7,132.0L499.5,132.8L500.1,133.5L499.3,134.2L498.6,135.3L497.0,136.0L494.6,136.1L492.2,136.8L490.8,137.9L489.8,137.2L487.8,137.2L485.0,136.0L483.2,135.7L481.2,136.0L477.7,135.5L475.9,135.6L474.5,134.3L473.1,132.5L472.0,132.2L469.6,131.0L467.3,130.7L465.3,130.4L464.4,129.5L464.1,127.1L462.4,125.5L459.8,124.7L458.1,123.7ZM530.3,173.4L530.0,176.7L529.7,178.4L528.4,176.7L527.8,175.1L528.3,173.1L529.3,171.5L530.3,172.1ZM553.3,142.8L552.8,144.9L553.8,147.0L553.9,148.7L554.7,149.7L554.4,151.2L552.7,152.1L549.8,152.3L548.3,154.6L546.9,153.8L546.2,152.3L543.5,152.7L541.9,153.7L539.9,153.7L542.2,155.3L542.3,158.8L541.5,159.7L540.4,158.9L540.2,157.0L538.9,156.4L537.7,155.0L539.1,154.3L539.5,153.0L540.7,152.0L541.4,150.6L544.5,149.9L546.4,150.4L546.6,146.7L548.1,147.7L549.7,145.6L550.2,144.8L550.1,142.3L548.7,140.0L548.7,138.7L550.2,138.3L552.6,141.2ZM552.6,133.0L553.3,132.2L554.9,134.5L552.9,135.0L552.5,137.1L549.2,135.7L549.5,137.9L547.7,137.9L546.5,135.9L546.4,134.3L548.1,134.2L547.0,131.4L546.5,129.8L549.6,131.9L551.3,132.6ZM542.6,154.6L543.0,153.4L544.1,153.6L544.4,152.8L545.8,153.2L546.3,153.9L545.9,155.2L544.9,154.5L544.2,155.0L544.2,156.2L542.9,155.6Z"/>
+          <path id="rg-anz" class="region" d="M631.9,259.7L632.5,259.4L632.9,260L632.3,261.0L631.2,261.3L630.3,261.1L630.4,260.1L631.2,259.4ZM635.7,257.7L634.5,258.2L633.2,258.7L633.2,257.9L634.2,257.5L634.8,257.4L636,256.7L636,256.7L635.7,257.7ZM4,256.7L4,256.7L4,256.7L4.3,256.6L4.3,257.6L4.2,257.7L4.2,257.7L4,256.7ZM570.4,229.0L573.5,230.4L576.7,231.6L577.9,232.7L578.8,233.7L579.0,234.9L581.9,236.2L582.2,237.3L580.6,237.5L580.8,238.9L582.3,240.2L583.2,242.4L584.2,242.3L584.1,243.2L585.4,243.6L584.8,244.0L586.6,244.8L586.3,245.4L585.1,245.6L584.8,245.0L583.3,244.8L581.5,244.5L580.3,243.2L579.4,242.1L578.7,240.3L576.5,239.4L574.9,239.9L573.8,240.6L573.8,242.1L572.4,242.8L571.4,242.5L569.6,242.4L570.1,235.7ZM591.0,231.2L591.7,231.8L591.8,232.9L591.2,233.5L591.0,232.2L590.6,231.5L589.8,230.8L588.8,229.9L587.6,229.3L588.1,228.8L589.0,229.4L589.6,229.8L590.3,230.3ZM588.4,235.7L587.4,236.2L586.4,236.7L585.5,236.6L584.1,236.1L583.1,235.5L583.3,234.8L584.9,235.1L585.8,235.0L586.2,234.0L586.4,233.9L586.5,235.0L587.6,234.9L588.1,234.2L589.1,233.4L589.0,232.2L590.1,232.2L590.4,232.5L590.3,233.7L589.6,234.9L588.7,235.1ZM594.6,234.6L595.1,235.1L595.9,236.4L596.6,237.1L596.3,237.7L595.8,237.9L595.1,237.1L594.4,235.8L594.2,234.2L594.4,234.0ZM613.6,256.4L614.4,257.6L613.8,257.8L613.4,256.9ZM612.9,255.9L612.8,255.3L613.1,253.8L613.8,254.4L613.7,256.1L613.3,255.8ZM608.4,267.1L609.5,268.4L610.1,269.3L609.3,269.8L608.5,269.2L607.5,268.3L606.7,267.2L606.0,265.8L605.9,265.1L606.6,265.1L607.4,265.8L608.0,266.5ZM606.6,245.2L607.0,245.9L605.7,245.9L605.2,244.7L606.2,245.1ZM606.0,243.4L605.7,243.8L604.6,242.0L604.4,240.8L605.0,240.8L605.4,242.4ZM604.5,244.0L603.8,244.0L602.7,243.8L602.4,243.5L602.6,242.7L603.7,243.0L604.3,243.4ZM602.8,240.2L603.1,240.8L603.2,241.2L601.9,240.3L601.0,239.6L600.4,238.9L600.6,238.7L601.4,239.2ZM598.5,238.1L599.2,238.8L598.8,238.9L598.1,238.4L597.4,237.6L597.6,237.2ZM609.8,306.3L608.5,307.4L606.8,308.8L605.0,309.6L605.1,309.1L604.6,308.8L606.6,307.1L606.7,306.0L605.5,305.2L606.0,304.4L607.6,303.7L608.8,302.1L609.5,300.8L609.6,299.4L609.8,299.1L609.5,298.2L609.1,296.4L609.2,294.9L609.9,294.7L610.2,295.9L611.2,296.4L610.7,298.3L610.7,300.4L611.5,299.0L612.0,299.6L611.4,301.2L612.3,301.8L613.3,302.0L614.7,301.2L615.4,301.4L613.9,303.3L612.7,304.5L611.5,304.4L610.7,305.1L610.3,305.9ZM593.5,313.5L595.6,312.4L597.2,311.3L598.9,309.8L599.9,309.3L600.8,308.1L602.6,307.2L602.4,308.1L602.2,308.9L603.9,308.1L603.8,308.9L603.3,309.8L602.1,310.8L600.0,312.3L598.7,313.1L598.6,314.1L597.3,314.1L595.4,314.9L594.1,316.2L591.8,318.2L589.9,319.1L588.7,319.7L587.2,319.7L586.7,319.0L585.0,318.9L585.3,318.1L587.2,316.6L590.5,314.6L591.8,314.2ZM561.2,307.8L562.1,308.0L560.9,310.4L559.9,311.1L558.8,312.8L558.6,312.2L556.6,313.6L556.4,313.5L555.4,313.4L555.4,311.7L555.9,310.4L555.9,308.6L556.5,307.6L557.4,307.8L558.6,308.5L559.7,308.2ZM533.0,290.1L530.9,291.2L529.2,291.7L528.5,292.7L527.6,293.6L526.2,293.6L525.0,293.8L523.7,293.4L522.4,293.7L521.2,293.8L519.8,294.9L519.4,294.8L518.3,295.4L517.3,296.0L516.1,295.9L515.0,295.9L513.7,294.6L512.9,294.2L513.3,293.0L514.3,292.8L514.7,292.3L514.9,291.5L515.5,290.1L515.7,288.9L515.5,286.8L515.5,285.6L515.9,284.4L515.6,283.1L515.8,282.5L515.2,281.6L515.4,280.0L514.9,278.4L514.9,277.5L515.4,278.4L515.3,276.5L516.0,277.1L516.3,277.9L516.5,276.8L516.1,275.2L516.1,274.5L515.8,273.9L516.3,272.7L516.7,272.2L517.2,271.2L517.3,270.0L518.3,268.5L518.1,270.0L519.1,268.6L520.7,267.9L521.7,267.1L523.2,266.3L524.0,266.1L524.4,266.4L526.0,265.6L527.1,265.4L527.4,264.9L527.9,264.7L528.9,264.8L530.8,264.2L531.9,263.3L532.6,262.2L533.8,261.1L534.0,260.3L534.3,259.2L535.8,257.4L536.2,259.2L537.1,258.8L536.6,257.8L537.3,256.8L538.0,257.3L538.5,255.7L539.6,254.7L540.1,253.9L541.1,253.5L541.2,252.9L541.9,253.2L542.0,252.7L542.8,252.4L543.7,252.1L544.9,253.0L545.7,254.3L546.8,254.3L547.9,254.5L547.7,253.3L548.8,251.7L549.6,251.1L549.4,250.6L550.4,249.5L551.5,248.7L552.4,249.0L553.9,248.6L554.0,247.5L552.8,246.9L553.8,246.6L554.9,247.1L555.7,247.9L557.2,248.4L557.7,248.2L558.7,248.9L559.8,248.3L560.4,248.4L560.9,248.1L561.6,249.1L561.0,250.2L560.2,251.0L559.5,251.1L559.6,251.9L559.0,252.9L558.2,253.9L558.2,254.5L559.4,255.7L560.6,256.3L561.4,257.0L562.5,258.3L563.0,258.3L563.8,258.8L563.9,259.4L565.5,260.1L566.8,259.4L567.3,258.3L567.8,257.4L568.3,256.3L569.1,254.6L569.0,253.6L569.2,253.0L569.2,251.8L569.7,250.3L570.1,249.9L569.9,249.2L570.5,248.1L571.0,247.0L571.1,246.4L571.9,245.6L572.2,246.6L572.2,247.9L572.6,248.2L572.5,249.0L573.0,250.1L573.0,251.2L572.8,252.0L573.2,253.6L574.4,252.8L574.9,253.7L575.6,254.5L575.2,255.4L575.3,257.2L575.3,258.2L575.7,258.5L575.8,260.2L575.4,261.3L575.7,262.7L577.3,263.8L578.3,264.8L579.3,265.7L578.9,266.2L579.6,267.5L579.7,269.7L580.5,269.2L581.0,270.1L581.5,269.8L581.2,272.0L582.0,273.3L582.6,274.1L583.4,275.7L583.3,277.4L583.0,278.6L582.4,279.9L582.6,281.6L581.9,283.5L581.2,284.4L580.0,286.3L579.6,287.4L578.7,288.9L577.1,290.8L575.5,291.8L574.2,293.4L573.2,294.5L571.9,296.2L570.7,297.3L569.6,298.8L568.7,300.2L568.5,300.9L567.2,301.6L565.3,301.7L563.4,302.5L562.2,303.3L560.8,304.2L559.9,303.3L559.0,302.9L559.8,301.9L558.7,302.2L556.6,303.7L555.4,303.2L554.6,302.9L553.7,302.7L552.4,302.1L551.9,300.8L552.3,299.3L552.4,298.2L551.9,297.4L550.4,297.1L551.4,296.1L551.6,294.6L550.2,296.0L548.6,296.4L549.9,295.3L550.7,294.1L551.7,293.1L552.2,291.5L550.1,293.3L548.8,294.0L547.5,295.7L546.5,294.8L547.0,293.7L546.5,292.2L545.9,291.4L546.4,291.0L544.7,289.7L543.6,289.6L542.3,288.6L539.2,288.8L536.7,289.6L534.6,290.3Z"/>
+          <path id="rg-closed" class="region closed" d="M431.1,65.9L433.3,65.6L436.4,66.3L440.7,67.6L441.8,69.0L439.3,69.2L435.5,68.7L432.9,68.2L431.0,67.1L429.0,66.8ZM444.7,68.4L448.6,69.2L448.9,69.8L442.6,70.4L442.8,68.4L443.7,68.3ZM494.6,73.2L498.0,73.3L503.6,74.2L504.1,75.4L499.3,75.3L497.6,75.7L493.9,74.6L493.3,73.5ZM508.0,74.5L511.7,74.9L511.1,75.6L508.8,75.4L505.7,74.8L505.4,74.3ZM501.1,77.8L501.6,77.1L503.0,76.9L505.6,77.6L506.2,78.0L504.3,78.0L501.4,77.8ZM373.4,66.5L375.6,66.2L377.4,66.2L377.9,66.6L378.4,66.2L379.4,66.0L381.3,66.3L381.0,66.5L379.5,66.7L378.4,66.8L378.4,67.1L377.1,67.3L375.7,67.0L376.1,66.5ZM354.4,112.4L351.6,112.4L349.7,112.2L350.0,111.3L352.0,110.7L353.6,111.0L354.3,111.3L354.2,111.9ZM389.0,77.1L391.4,75.7L390.7,74.9L393.2,74.1L396.8,73.1L400.8,72.8L402.6,72.2L404.9,72.0L406.2,72.6L405.6,73.1L401.6,73.9L398.2,74.6L395.0,76.2L393.8,77.8L392.4,79.4L393.3,80.8L396.4,82.2L395.7,82.4L391.2,82.2L390.6,81.4L388.0,80.9L387.5,80.0L388.7,79.7L388.3,78.7L390.3,77.3ZM537.4,113.6L539.3,115.5L540.6,117.4L542.6,119.4L546.5,122.9L543.8,122.3L544.7,125.2L547.5,127.2L548.3,128.6L546.3,127.4L546.2,129.0L544.9,127.3L543.9,125.3L542.4,123.2L541.8,121.7L540.1,119.0L537.8,117.1L536.1,114.4L536.8,113.5L535.6,112.6L536.0,112.3ZM501.7,121.1L500.0,121.3L498.8,120.6L497.7,120.4L496.2,121.8L494.3,122.1L493.1,122.6L491.0,122.3L489.6,122.3L488.1,121.3L486.1,120.3L484.4,120.1L482.6,120.3L481.3,120.7L478.7,119.9L477.7,118.4L475.6,117.9L474.1,117.6L472.0,116.8L471.3,118.9L472.5,120.0L471.6,121.4L469.1,120.9L467.6,120.9L466.1,119.9L464.5,119.9L462.9,119.3L460.9,120.2L458.6,121.9L457.1,122.3L458.1,123.7L459.8,124.7L462.4,125.5L464.1,127.1L464.4,129.5L465.3,130.4L467.3,130.7L469.6,131.0L472.0,132.2L473.1,132.5L474.5,134.3L475.9,135.6L477.7,135.5L481.2,136.0L483.2,135.7L485.0,136.0L487.8,137.2L489.8,137.2L490.8,137.9L492.2,136.8L494.6,136.1L497.0,136.0L498.6,135.3L499.3,134.2L500.1,133.5L499.5,132.8L498.7,132.0L498.9,130.7L499.9,130.9L501.7,131.3L502.8,130.2L504.9,129.5L505.4,128.1L506.2,127.5L508.4,127.3L509.8,127.5L509.6,126.8L507.4,125.4L505.8,124.7L505.0,125.5L503.3,125.2L502.5,125.4L501.7,124.6L501.8,122.6ZM76.9,85.3L76.9,85.3L78.5,86.6L80.0,88.4L78.6,89.5L79.0,89.9L80.2,88.6L83.6,88.9L84.4,90.6L82.1,91.3L79.6,91.5L77.6,93.3L76.6,93.7L75.4,93.6L75.0,93.0L73.8,92.5L74.3,91.7L73.3,91.4L71.4,91.6L71.4,91.0L72.5,90.3L70.3,90.7L69.9,91.6L68.3,92.4L68.3,92.4L76.9,85.3ZM571.6,92.4L571.6,92.4L570.8,93.2L568.8,93.0L571.2,94.0L573.7,95.5L574.9,96.0L575.9,96.7L576.1,97.2L573.0,96.8L570.5,98.2L569.5,98.4L568.6,99.7L567.7,100.9L568.0,101.7L564.6,100.4L562.3,101.9L561.0,101.2L560.4,102.0L558.2,101.8L558.9,103.0L558.8,104.8L559.6,105.6L561.6,106.0L563.9,108.8L562.6,108.9L563.4,110.5L564.7,111.3L562.9,112.3L564.2,114.6L562.3,115.0L563.4,117.0L562.6,118.9L561.0,117.5L558.1,114.6L553.8,110.3L552.3,107.7L552.5,106.5L551.8,105.6L553.7,105.2L554.2,102.8L554.9,100.9L556.0,99.4L554.6,96.8L553.0,96.9L553.7,98.5L552.0,100.5L548.6,98.2L545.5,98.8L544.8,102.0L547.0,103.1L544.2,103.6L542.1,103.8L541.0,102.5L538.5,102.2L537.5,103.1L532.7,102.8L528.4,103.3L526.5,107.0L524.1,111.6L526.7,111.8L528.3,113.0L530.1,113.5L530.4,112.5L532.1,112.6L535.9,114.8L537.1,116.5L537.2,118.4L538.7,120.8L540.0,124.0L539.4,126.9L539.7,128.3L538.9,130.6L538.0,133.0L537.6,134.2L536.0,135.4L535.0,135.4L533.5,134.4L532.1,135.9L532.2,136.6L531.5,136.5L531.1,137.2L531.0,137.9L531.7,139.3L531.1,139.8L531.0,140.1L530.6,140.8L529.7,141.1L529.2,141.6L529.6,142.5L529.5,142.8L530.3,143.1L531.6,144.0L531.6,144.5L530.9,144.6L529.8,144.7L529.5,145.7L528.8,145.6L528.7,145.8L527.8,145.4L527.7,145.8L527.3,145.9L527.1,145.5L526.6,145.4L526.0,145.0L526.1,144.1L526.4,143.9L526.1,143.5L526.0,142.4L525.8,142.1L524.7,141.8L523.7,141.3L523.7,141.3L521.7,141.9L520.9,142.8L519.3,143.4L519.8,142.5L519.1,141.7L519.8,140.3L518.5,139.2L517.4,139.9L516.1,141.4L515.7,142.7L514.1,142.8L513.6,143.7L515.1,145.1L516.6,145.5L517.0,146.4L518.5,147.0L519.8,145.5L521.6,146.3L522.7,146.4L523.4,147.5L521.2,148.0L520.9,149.2L519.6,150.2L519.3,151.6L521.5,152.8L522.9,154.8L524.5,156.7L526.2,158.3L526.7,159.8L525.8,160.4L526.5,161.5L527.7,162.1L528.0,163.8L528.0,165.5L527.1,165.7L526.5,167.9L525.8,170.6L524.8,173.1L522.9,175.0L520.9,176.7L519.0,177.0L518.1,177.9L517.3,177.2L516.6,178.2L514.4,179.3L512.6,179.6L512.4,181.8L511.5,181.9L510.7,180.4L511.0,179.6L508.5,178.9L507.8,179.3L505.9,178.7L504.9,177.9L505.0,176.7L503.3,176.3L502.3,175.6L501.1,176.7L499.4,176.9L498.0,176.9L497.2,177.4L496.4,177.7L497.0,180.1L496.1,180.0L495.9,179.5L495.7,178.7L494.5,179.3L493.7,178.9L492.2,178.1L492.4,176.4L491.3,176.0L490.5,174.1L488.7,174.4L488.5,172.0L489.7,170.2L489.4,168.5L489.0,167.0L488.2,166.5L487.3,165.2L486.4,165.4L484.4,165.1L484.8,164.2L483.7,162.9L482.7,163.8L481.2,163.3L479.5,164.6L478.3,166.1L476.9,166.4L476.1,165.8L475.2,165.8L473.8,165.3L473.0,165.8L472.2,167.4L471.7,165.8L470.8,166.2L468.7,166.0L466.7,165.5L465.1,164.6L463.7,164.2L463.0,163.2L461.9,162.9L459.9,161.6L458.4,160.9L457.8,161.4L455.2,160.0L453.2,158.7L452.3,156.4L453.6,156.6L453.4,155.6L452.5,154.5L452.3,152.8L449.9,150.4L447.0,149.6L446.1,148.0L444.6,147.0L444.2,146.5L443.7,145.3L443.5,144.5L442.4,144.0L441.9,144.2L441.0,142.3L441.4,141.8L441.0,141.4L442.3,140.4L443.3,140.0L445.2,140.3L445.4,139.0L447.4,138.7L447.8,137.9L450.0,136.8L450.1,136.3L449.6,135.2L450.6,134.6L448.0,131.1L450.9,130.3L451.6,129.8L451.5,126.2L454.8,126.9L455.4,126.0L454.7,124.0L455.9,123.8L456.6,122.4L455.3,121.2L453.4,121.5L452.4,120.6L451.1,120.3L449.9,119.1L448.9,118.8L446.9,119.3L444.3,118.1L443.9,119.2L438.5,114.2L436.0,112.7L436.3,112.0L433.2,113.9L431.8,114.0L431.5,112.9L429.3,112.3L427.9,112.7L426.7,110.7L423.9,110.3L422.8,111.1L419.3,111.8L418.7,112.3L413.2,113.0L412.7,113.7L414.3,115.0L413,115.5L413.4,116.0L412.2,117.0L415.1,118.4L415.0,119.3L412.8,119.2L412.5,119.8L410.2,118.8L407.8,118.8L406.4,119.6L404.3,118.8L400.6,117.5L398.2,117.5L395.5,119.7L395.6,121.1L393.8,120.0L393.0,122.2L393.6,122.6L393.0,124.1L394.6,125.5L395.8,125.4L397.0,126.7L397.1,127.8L398.0,128.1L397.5,129.3L396.0,129.6L394.8,131.7L396.6,133.7L396.7,135.0L398.9,137.4L398.1,138.3L397.9,138.8L397.2,138.6L395.8,137.4L395.4,137.3L394.3,136.9L393.6,136.0L392.1,135.6L391.1,135.9L390.8,135.5L388.4,134.6L386.0,134.2L384.6,133.9L384.4,134.1L382.1,132.4L380.1,131.6L378.6,130.4L379.7,130.1L380.8,128.4L379.7,127.6L381.9,126.8L381.8,126.4L380.5,126.7L380.4,125.8L381.1,125.2L382.6,125.1L382.7,124.4L382.2,123.3L382.6,122.3L382.5,121.7L380.1,121.0L379.2,121.1L378.0,120.1L376.9,120.4L374.8,119.7L374.8,119.3L374.1,118.5L372.8,118.4L372.6,117.8L372.9,117.4L371.8,116.3L370.2,116.5L369.7,116.4L369.4,116.8L368.8,116.7L368.2,115.5L367.8,114.8L368.0,114.6L369.3,114.7L369.8,114.3L369.3,113.7L368.2,113.4L368.2,113.1L367.6,112.7L366.4,111.4L366.6,110.9L366.3,110.0L364.8,109.5L364.0,109.8L363.8,109.3L362.1,108.8L361.5,107.7L361.2,106.7L360.4,106.3L360.9,105.7L360.2,103.9L361.1,102.8L360.8,102.5L362.3,101.5L360.6,100.6L363.3,98.2L364.4,97.1L364.8,96.2L362.5,94.9L362.8,93.8L361.3,92.4L361.9,90.9L359.9,88.8L360.9,87.5L358.6,86.3L358.5,85.1L359.6,84.9L361.7,84.2L363.0,83.6L365.4,84.7L369.2,85.1L374.9,87.1L376.2,87.9L376.6,89.1L375.3,90.0L373.2,90.5L366.7,89.2L365.7,89.4L368.3,90.7L368.5,91.5L369.0,93.4L371.0,93.9L372.2,94.4L372.2,93.5L371.1,92.7L371.9,92.1L375.5,93.2L376.6,92.7L375.3,91.4L378.1,89.7L379.4,89.8L380.8,90.4L381.3,89.2L379.8,88.1L380.2,87.1L378.8,86.0L382.8,86.5L383.9,87.5L382.2,87.7L382.6,88.7L383.8,89.3L385.8,88.9L385.8,87.8L388.4,87.0L392.6,85.5L393.6,85.5L392.7,86.6L394.4,86.8L395.2,86.2L397.7,86.1L399.4,85.4L401.4,86.5L402.5,85.3L400.6,84.3L401.1,83.7L405.3,84.3L407.4,84.8L413.2,86.8L413.7,85.9L411.9,85.0L411.6,84.6L409.9,84.4L410.0,83.6L408.6,82.3L408.3,81.7L410.0,80.2L410.0,78.6L410.8,78.3L414.5,78.7L415.3,79.7L414.8,81.1L415.9,81.6L417.0,82.8L417.9,85.2L419.9,86.2L419.9,87.4L418.5,89.9L420.2,90.2L420.4,89.6L421.7,89.1L421.7,88.2L422.4,87.4L421.1,86.4L421.1,85.2L419.6,85.1L418.7,84.1L418.9,82.4L416.4,81.0L418.1,79.8L417.2,78.6L417.8,78.6L419.0,79.5L419.4,81.2L421.0,81.5L419.7,80.3L421.5,79.6L424.2,79.5L427.2,80.5L425.2,79.1L423.9,77.3L425.9,77.0L429.1,77.0L431.7,76.8L430.1,76L430.8,74.9L432.2,74.8L434.1,74.0L437.3,73.8L437.4,73.4L440.5,73.2L441.9,73.6L444.0,72.7L446.3,72.8L446.0,72.1L446.6,71.4L448.9,70.8L451.6,71.3L450.2,71.7L453.3,71.9L454.4,72.7L455.1,72.3L458.8,72.3L462.4,73.1L464.0,73.7L464.5,74.5L463.5,75.0L461.0,75.9L460.5,76.4L462.3,76.6L464.5,77.1L465.4,76.7L467.0,77.8L467.2,77.4L469.0,77.1L473.4,77.4L474.5,78.2L480.1,78.4L479.0,77.1L482.0,77.4L484.1,77.4L487.0,78.3L488.7,79.4L488.6,80.1L491.5,81.4L494.3,82.1L493.8,80.3L496.7,81.1L498.5,80.6L501.6,81.2L502.0,80.7L504.5,80.9L501.9,79.3L502.8,78.6L515.8,79.7L518.1,80.7L523.0,82.0L528.0,81.7L530.9,82.0L532.9,82.7L534.1,84.0L536.4,84.5L537.8,84.1L540.1,84.1L543.0,84.4L545.3,84.2L549.5,85.7L550.5,85.2L548.1,84.1L547.8,83.3L552.6,83.8L555.3,83.7L560.2,84.5L563.0,85.3L571.6,92.4ZM558.9,82.0L557.5,82.1L556.6,81.6L557.3,80.9L558.9,82.0ZM82.6,80.9L82.6,80.9L82.6,80.9L82.8,80.8L84.0,80.8L85.2,81.3L84.8,81.5L82.9,81.9L81.0,82.0L81.0,82.0L82.6,80.9ZM373.2,129.0L373.5,128.5L374.7,128.9L375.3,129.0L375.5,129.4L375.8,129.4L375.8,129.6L376.7,130.1L378.3,130.0L378.1,130.7L376.4,131.1L374.4,132.2L373.4,131.8L373.6,130.9L371.8,130.3L372.0,129.9L373.5,129.2ZM402.6,161.9L401.5,160.9L401.4,159.8L400.8,159.8L400.9,158.3L399.8,156.7L397.6,155.5L396.2,153.6L396.4,152.0L397.1,151.3L396.8,150.0L395.6,149.4L394.2,147.0L393.1,145.3L393.3,144.7L392.4,142.3L393.5,141.7L393.8,142.5L394.8,143.5L396.0,143.7L396.6,143.7L398.3,142.2L398.9,142.0L399.5,142.6L399.1,143.6L400.3,144.7L400.7,144.6L401.4,146.1L403.1,146.5L404.4,147.6L406.8,147.9L409.3,147.4L409.4,146.9L408.8,145.5L408.7,143.3L407.3,142.6L407.4,141.2L406.3,141.1L406.3,139.3L408.0,139.8L409.3,139.2L407.9,138.0L407.2,136.8L406.0,137.3L406.1,138.8L405.3,137.5L405.9,136.8L407.7,136.4L408.9,137.0L410.3,138.6L411.2,138.5L413.0,138.4L412.5,137.4L413.7,136.7L414.8,135.5L417.3,136.6L417.8,138.2L418.5,138.6L420.3,138.5L420.9,138.9L422.2,141.0L424.4,142.5L425.6,143.4L427.6,144.4L430.0,145.3L430.2,146.6L429.7,146.5L428.8,146.0L428.7,146.7L427.4,147.1L427.4,148.7L426.6,149.4L425.3,149.7L425.1,150.6L423.9,150.9L422.1,150.1L421.9,152.7L421.7,154.2L422.5,154.5L421.9,155.6L422.8,157.3L423.1,158.6L424.4,158.9L424.8,160.3L423.6,162.1L424.6,163.2L425.4,164.5L427.2,165.4L427.5,167.2L428.4,167.6L428.7,168.5L426.3,169.6L426.0,172.0L422.7,171.4L420.7,170.9L418.8,170.6L417.7,168.1L416.8,167.7L415.6,168.1L414.0,169.1L411.8,168.4L409.9,166.8L408.1,166.2L406.8,164.2L405.2,161.5L404.3,161.8L403.1,161.1ZM511.5,186.2L509.9,185.6L509.6,183.8L510.3,182.9L512.1,182.3L513.1,182.3L513.6,183.1L513.0,184.0L512.8,185.2Z"/>
+          <text class="rlabel" x="179" y="106" text-anchor="middle">N. America</text>
+          <text class="rpct" x="179" y="120" text-anchor="middle" id="pct-na">0%</text>
+          <text class="rlabel" x="206" y="244" text-anchor="middle">South America</text>
+          <text class="rpct" x="206" y="258" text-anchor="middle" id="pct-latam">0%</text>
+          <text class="rlabel" x="330" y="110" text-anchor="middle">Europe</text>
+          <text class="rpct" x="330" y="124" text-anchor="middle" id="pct-eu">0%</text>
+          <text class="rlabel" x="352" y="206" text-anchor="middle">Africa</text>
+          <text class="rpct" x="352" y="220" text-anchor="middle" id="pct-af">0%</text>
+          <text class="rlabel" x="404" y="156" text-anchor="middle">Mid East</text>
+          <text class="rpct" x="404" y="170" text-anchor="middle" id="pct-me">0%</text>
+          <text class="rlabel" x="452" y="170" text-anchor="middle">S. Asia</text>
+          <text class="rpct" x="452" y="184" text-anchor="middle" id="pct-sa">0%</text>
+          <text class="rlabel" x="514" y="208" text-anchor="middle">SE Asia</text>
+          <text class="rpct" x="514" y="222" text-anchor="middle" id="pct-sea">0%</text>
+          <text class="rlabel" x="546" y="132" text-anchor="middle">E. Asia</text>
+          <text class="rpct" x="546" y="146" text-anchor="middle" id="pct-ea">0%</text>
+          <text class="rlabel" x="556" y="280" text-anchor="middle">Oceania</text>
+          <text class="rpct" x="556" y="294" text-anchor="middle" id="pct-anz">0%</text>
+          <text class="rlabel closedlbl" x="452" y="62" text-anchor="middle">Russia 🔒</text>
+          <text class="rlabel closedlbl" x="472" y="122" text-anchor="middle">China 🔒</text></svg>
+        <div class="maplegend">
+          <span><span class="sw" style="background:#3A4060"></span>Not yet</span>
+          <span><span class="sw" style="background:#5B4BEB"></span>Growing</span>
+          <span><span class="sw" style="background:#7EE7FF"></span>Everywhere</span>
+          <span><span class="sw" style="background:#2A2F45;border:1px dashed #555"></span>Closed</span>
+          <span>⚠ = blocked for now</span>
+        </div>
+        <div class="region-info" id="regionInfo" style="display:none" aria-live="polite"></div>
+      </div>
+
+      <div class="regions" id="regionList" style="display:none">
+        <h3>Where your users are</h3>
+        <div id="regionRows"></div>
+      </div>
+
+      <div class="ticker" id="ticker" style="display:none">
+        <div class="th">📡 World feed</div>
+        <div id="tickerItems"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<dialog id="mapModal" aria-label="Expanded world map">
+  <div class="mm-head">
+    <b id="mmTitle">World coverage</b>
+    <button class="mm-close" id="mmClose" aria-label="Close expanded map">✕ Close</button>
+  </div>
+  <p class="mm-summary" id="mmSummary"></p>
+  <p class="mm-summary" style="margin-top:-6px">💡 Click any country to jump to its details below.</p>
+  <div id="mmSvgHolder"></div>
+  <div id="mmDetails"></div>
+</dialog>
+
+<div class="celeb-toast" id="celebToast" role="status" aria-live="polite"></div>
+
+<script>
+/* ================= TUNING ================= */
+const CFG = {
+  turns:9, seed:400,
+  win:{users:800, profit:1, well:60},
+  risk:{dark:14, mid:5, ethical:-8},
+  arpu:{none:0.9, dark:3.4, mid:2.3, ethical:1.7},
+  costPerUser:0.75, fixedCost:120,
+  copyPenalty:0.06, moatBonus:0.038,
+  growHype:0.00135, growWell:0.00032, homeBoost:1.4,
+  euFreezeRisk:55, eaWellGate:55,
+  auditsAfter:[5,9],
+  eventsAfter:[3,7],
+};
+
+const REGIONS = {
+  anz:   {name:"Oceania (Aus/NZ)",   pop:30,  open:.95, grip:.55, city:"Melbourne",     trait:"Small, friendly launchpad. Easy to reach, quick to love new apps."},
+  na:    {name:"North America",      pop:310, open:.85, grip:.80, city:"San Francisco", trait:"Rich and huge — but it's the giants' home turf. Hardest market to crack."},
+  latam: {name:"South America",      pop:460, open:.90, grip:.65, city:"São Paulo",     trait:"Fast-moving and super social. Loves a challenger."},
+  eu:    {name:"Europe & UK",        pop:450, open:.80, grip:.70, city:"Berlin",        trait:"Strict internet laws. Keep Trouble under 55 or you're blocked."},
+  af:    {name:"Africa",             pop:620, open:.75, grip:.50, city:"Lagos",         trait:"The youngest population on Earth. Growing faster than anywhere."},
+  me:    {name:"Mid East & C. Asia", pop:260, open:.70, grip:.60, city:"Dubai",         trait:"Mobile-first and massive — but harder to reach."},
+  sa:    {name:"South Asia",         pop:950, open:.85, grip:.60, city:"Mumbai",        trait:"Nearly a billion people. Win here and the world follows."},
+  sea:   {name:"Southeast Asia",     pop:520, open:.90, grip:.70, city:"Jakarta",       trait:"Phone-in-hand, hyper-social, always online."},
+  ea:    {name:"East Asia",          pop:260, open:.70, grip:.75, city:"Seoul",         trait:"Trust comes first: Wellbeing 55+ before the doors open."},
+};
+
+const S = {
+  turn:0, hype:50, well:50, risk:10,
+  cash:CFG.seed, profit:0, users:0, arpuTier:"none",
+  copies:0, moat:0, bailedOut:false, movementFired:false, dpExplained:false, eaOpened:false,
+  home:"anz",
+  adoption:Object.fromEntries(Object.keys(REGIONS).map(k=>[k, 0])),
+  log:[], news:[],
+};
+
+/* ================= THE 9 DECISIONS ================= */
+const ROUNDS = [
+  {
+    title:"The feed: what do people see first?",
+    body:"The feed decides what millions of eyes look at every day. What powers yours?",
+    quote:{who:"Your investor", text:"TikTok's For You page is the stickiest thing ever built. Match it."},
+    opts:[
+      { t:"Outrage algorithm", d:"Boost whatever makes people angry — angry posts get twice the comments.",
+        tag:"dark", fx:{a:+14,w:-13},
+        psych:"Your brain is wired to notice threats, so angry posts grab more attention than happy ones. An algorithm chasing engagement drifts toward outrage all by itself.",
+        real:"Leaked Facebook research showed angry content spread furthest on its apps — even when users said they hated it." },
+      { t:"Smart feed with an off switch", d:"Personalised, but anyone can flip to 'newest first' whenever they want.",
+        tag:"mid", fx:{a:+7,w:+3},
+        psych:"Recommendations aren't evil — they're useful. The fair version lets people see why a post was shown and turn the algorithm off.",
+        real:"European law forced Instagram and TikTok to add a no-algorithm option. They never offered it by choice." },
+      { t:"Newest first, friends only", d:"Just posts from people you follow, in order. No algorithm.",
+        tag:"ethical", fx:{a:-8,w:+9},
+        psych:"A simple feed has an end point, and no machine deciding what you 'should' want. The catch: it's less exciting, so casual users drift away.",
+        real:"Instagram worked exactly like this until 2016 — it switched to an algorithm because time-on-app jumped." }
+    ]
+  },
+  {
+    title:"Money: how does the app get paid?",
+    body:"Servers aren't free. This one decision will quietly shape every choice you make after it.",
+    quote:{who:"Your money person", text:"Instagram makes serious cash from every user. Almost all of it from targeted ads."},
+    opts:[
+      { t:"Track everything, sell targeted ads", d:"Follow what users click, where they go, what they like — and sell ads aimed right at them. Biggest money.",
+        tag:"dark", fx:{a:+3,w:-11}, arpu:"dark",
+        psych:"When your money comes from attention and data, every future design choice gets pushed the same way: more time, more tracking.",
+        real:"When Apple let iPhone users say no to tracking with one tap, most people said no — costing Meta about $10 billion in a year." },
+      { t:"Ads that match the content, not the person", d:"A surf video shows surf ads — no matter who's watching. No spying needed.",
+        tag:"mid", fx:{a:+1,w:+4}, arpu:"mid",
+        psych:"Earns less per ad, but you never need to track anyone — and you get paid for good content, not for keeping people stuck.",
+        real:"DuckDuckGo has made money this way for years without tracking a single user." },
+      { t:"Optional subscription + a few gentle ads", d:"Fans can pay a few dollars a month. You work for users, not advertisers.",
+        tag:"ethical", fx:{a:-3,w:+9}, arpu:"ethical",
+        psych:"When users are the ones paying, the app's job flips from 'keep them hooked' to 'keep them happy'. The catch: it's a hard sell next to free apps.",
+        real:"Signal runs on donations, and paid apps openly advertise 'you're the customer, not the product'." }
+    ]
+  },
+  {
+    title:"Notifications: when do you buzz someone's pocket?",
+    body:"A notification interrupts real life — dinner, homework, sleep. What's your policy?",
+    quote:{who:"Growth team", text:"A user who ignores us for two days is nearly gone. Notifications reel them back."},
+    opts:[
+      { t:"FOMO pings", d:"Save up likes, then release them in a burst when someone hasn't opened the app. '3 people viewed your profile 👀'",
+        tag:"dark", fx:{a:+13,w:-12},
+        psych:"Unpredictable rewards are exactly how poker machines work — surprise hits of dopamine keep you pulling the lever. Holding back likes creates the surprise on purpose.",
+        real:"Facebook's first president admitted the app was designed to give 'a little dopamine hit' and exploit 'a vulnerability in human psychology'." },
+      { t:"Calm defaults", d:"Only notify about real friends by default, and ask new users what they actually want — in plain English.",
+        tag:"mid", fx:{a:+4,w:+5},
+        psych:"Most people never touch their settings, so whatever you pre-select is what nearly everyone lives with. The default IS the decision.",
+        real:"Apple built notification summaries into the iPhone because apps wouldn't calm themselves down." },
+      { t:"One daily digest", d:"Everything bundled into one summary a day, at a time each user picks. That's it.",
+        tag:"ethical", fx:{a:-9,w:+10},
+        psych:"A fixed, boring schedule kills the poker-machine effect — your phone stops being a slot machine.",
+        real:"The eSafety Commissioner's number-one tip for teens: turn off non-essential notifications." }
+    ]
+  },
+  {
+    title:"Streaks: punish people for logging off?",
+    body:"Habit features turn casual users into daily users. The question is who the habit serves.",
+    quote:{who:"Your investor", text:"Snapchat streaks are genius. Kids protect them like treasure. That's loyalty."},
+    opts:[
+      { t:"🔥 Streaks that reset to zero", d:"Miss one day and your streak dies. Warning notification at hour 20.",
+        tag:"dark", fx:{a:+12,w:-11},
+        psych:"Losing something feels about twice as bad as winning feels good. A 200-day streak stops being fun and starts being a hostage.",
+        real:"Teens have handed friends their Snapchat passwords before holidays — just to keep streaks alive." },
+      { t:"Private goals you set yourself", d:"Pick your own goal, pause anytime, nobody else sees it.",
+        tag:"mid", fx:{a:+5,w:+4},
+        psych:"When it's your goal and you control the exit, the habit works for you instead of on you.",
+        real:"Fitness apps like Strava let users set their own weekly targets." },
+      { t:"No streaks at all", d:"Nothing counts your attendance. The app is just there when you want it.",
+        tag:"ethical", fx:{a:-6,w:+8},
+        psych:"People come back only if they genuinely want to. That's an honest number — and honest numbers are smaller, which is why growth teams hate them.",
+        real:"When Snapchat crashed in 2021 and streaks broke, support was flooded with genuinely distressed messages." }
+    ]
+  },
+  {
+    title:"Likes: public scoreboard or private note?",
+    body:"The like button is the most powerful social feature ever built. How does yours work?",
+    quote:{who:"Product manager", text:"Public like counts are free motivation. People post more when they're chasing a number."},
+    opts:[
+      { t:"Public counts + confetti", d:"Everyone sees everyone's numbers. Likes land with animations and a live counter.",
+        tag:"dark", fx:{a:+11,w:-11},
+        psych:"Public numbers turn posting into a competition — and teenage brains are extra sensitive to peer approval.",
+        real:"Meta's own leaked research found Instagram made body image worse for 1 in 3 teen girls, blaming comparison with others' numbers." },
+      { t:"Only you see your numbers", d:"You know how your post did. Nobody else can see the score.",
+        tag:"mid", fx:{a:+3,w:+6},
+        psych:"Creators keep the feedback they want; the public scoreboard — and the anxiety — disappears.",
+        real:"Instagram tested hiding like counts in Australia in 2019… then quietly made it optional instead of the default. Ask yourself why." },
+      { t:"No numbers anywhere", d:"No like counts, no follower counts. Comments only.",
+        tag:"ethical", fx:{a:-8,w:+9},
+        psych:"No ranking means no status anxiety — but also less of the buzz that keeps people posting.",
+        real:"BeReal launched with no numbers and grew fast on realness — then struggled to keep growing." }
+    ]
+  },
+  {
+    title:"Endless content: does it ever stop?",
+    body:"A video just ended and the feed's run out of new posts. The next second decides everything.",
+    quote:{who:"Growth team", text:"Every time the screen goes quiet, someone leaves. Never let it go quiet."},
+    opts:[
+      { t:"Infinite scroll + instant autoplay", d:"The next video starts in 0 seconds. The feed never, ever ends.",
+        tag:"dark", fx:{a:+15,w:-13},
+        psych:"With no stopping point, your brain never gets the 'I'm done' signal — like eating from a bowl that secretly refills itself.",
+        real:"The inventor of infinite scroll has publicly said he regrets creating it." },
+      { t:"Countdown with a real Stop button", d:"Next video previews with a 5-second countdown and a big honest 'Stop'.",
+        tag:"mid", fx:{a:+7,w:+1},
+        psych:"A short pause lets your brain catch up with your thumb.",
+        real:"Netflix's 'Are you still watching?' exists for exactly this reason." },
+      { t:"A real ending", d:"'You're all caught up ✓ — see you tomorrow.' Videos stop when they finish.",
+        tag:"ethical", fx:{a:-8,w:+10},
+        psych:"A full stop works like a plate instead of a bottomless bowl — your brain registers 'done' and moves on.",
+        real:"Instagram built 'You're All Caught Up' in 2018 — then buried it under endless Suggested Posts." }
+    ]
+  },
+  {
+    title:"Fake news: it's election year",
+    body:"Elections are happening in three of your biggest markets, and made-up stories are spreading fast — including on your app.",
+    quote:{who:"Head of policy", text:"Moderation costs money. Viral content makes money. Every app boss faces this exact meeting."},
+    opts:[
+      { t:"If it's viral, it runs", d:"Barely any moderation. Made-up stories ride the algorithm like everything else.",
+        tag:"dark", fx:{a:+10,w:-13},
+        psych:"Fake stories are built to be shocking, and shocking spreads — research shows false news travels faster than the truth.",
+        real:"Every major platform has had an election fake-news crisis. Corrections never catch up to the original lie." },
+      { t:"Label it and turn down the volume", d:"Fact-check labels, and flagged posts get shown to fewer people.",
+        tag:"mid", fx:{a:+2,w:+5},
+        psych:"The post stays up — the megaphone just gets smaller.",
+        real:"Roughly what the big platforms did after the 2016–2020 elections (though unevenly, especially outside English)." },
+      { t:"Pause before sharing + real moderators", d:"A 'read it first?' prompt before resharing, plus human moderators in every language. Costs $60M.",
+        tag:"ethical", fx:{a:-4,w:+10}, cost:60,
+        psych:"A tiny pause before sharing measurably cuts thoughtless spreading — without deleting anything.",
+        real:"When Twitter tried a 'read the article before retweeting?' prompt in 2020, about 40% more people actually opened the article." }
+    ]
+  },
+  {
+    title:"Privacy: how is a brand-new account set up?",
+    body:"A 14-year-old signs up tonight. Before they touch a single setting, your defaults have already decided everything for them.",
+    quote:{who:"Ads team", text:"Public profiles and full data collection by default. Every private account is money we can't make."},
+    opts:[
+      { t:"Public + collect everything", d:"Profile public, location on, contacts synced — all by default. The off-switches are buried five menus deep.",
+        tag:"dark", fx:{a:+6,w:-13},
+        psych:"People accept whatever's pre-set. Burying the off-switch is a deliberate tax on anyone trying to protect themselves.",
+        real:"Regulators had to force TikTok and Instagram to make under-16 accounts private by default." },
+      { t:"Plain-English setup", d:"Sign-up asks each question honestly — 'Who can see your posts?' — with nothing pre-ticked.",
+        tag:"mid", fx:{a:+2,w:+7},
+        psych:"A real choice needs understanding, not a 47-page terms-of-service nobody reads.",
+        real:"Apple's one-sentence tracking question proved it: asked plainly, most people said no." },
+      { t:"Private by default, collect the minimum", d:"Friends-only accounts, no tracking, location off. You only collect what the app needs to run.",
+        tag:"ethical", fx:{a:-4,w:+11},
+        psych:"Data you never collect can't be leaked, hacked, or used against your users.",
+        real:"Australia's under-16 social media laws exist because apps wouldn't choose settings like this on their own." }
+    ]
+  },
+  {
+    title:"Time: whose side is the clock on?",
+    body:"Last decision. Your average teen user now opens the app 30 times a day, on every continent. You're the only person who can change that.",
+    quote:{who:"Your investor", text:"Time-on-app is what this company is worth. Don't build features that shrink our own product."},
+    opts:[
+      { t:"No limits, ever", d:"No timers, no reminders. If parents want controls, they can go find another app for that.",
+        tag:"dark", fx:{a:+10,w:-11},
+        psych:"You keep the profit from all that attention — families and schools pay the cost in lost sleep and focus.",
+        real:"Platforms only added wellbeing tools after public scandal — and left them switched off by default." },
+      { t:"Optional break reminders", d:"Users can set limits and 'take a break' nudges — off by default, easy to snooze.",
+        tag:"mid", fx:{a:+3,w:+4},
+        psych:"Better than nothing — but opt-in tools mostly reach the people who least need them.",
+        real:"Instagram's 'Take a Break' works exactly like this. Hardly anyone turns it on." },
+      { t:"60-minute default for under-18s", d:"Teen accounts get a daily limit and a wind-down mode after 9pm — in every country, not just where the law demands it.",
+        tag:"ethical", fx:{a:-8,w:+11},
+        psych:"Now the effort is in continuing, not stopping — a straight reversal of the trick. Teens can override it, but the default protects everyone who never touches settings.",
+        real:"TikTok's Chinese sister app enforces far stricter youth limits at home than TikTok does anywhere else. They can do it — they choose not to." }
+    ]
+  }
+];
+
+/* ================= HELPERS ================= */
+const $ = id => document.getElementById(id);
+const clamp = (n,lo=0,hi=100) => Math.max(lo, Math.min(hi, n));
+const fmtU = m => m>=1000 ? (m/1000).toFixed(2)+"B" : m>=9.5 ? Math.round(m)+"M" : Math.max(0,m).toFixed(1)+"M";
+const fmt$ = m => (m<0?"−$":"$")+Math.abs(Math.round(m))+"M";
+
+function lerpColor(t){
+  const a=[58,64,96], b=[91,75,235], c=[126,231,255];
+  const mix=(x,y,f)=>Math.round(x+(y-x)*f);
+  let rgb;
+  if(t<0.5){const f=t/0.5; rgb=[mix(a[0],b[0],f),mix(a[1],b[1],f),mix(a[2],b[2],f)];}
+  else {const f=(t-0.5)/0.5; rgb=[mix(b[0],c[0],f),mix(b[1],c[1],f),mix(b[2],c[2],f)];}
+  return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+}
+// realistic adoption tops out ~55%, and sqrt spreads the low end so early growth is visible
+const adoptColor = a => lerpColor(Math.min(1, Math.sqrt(a/0.55)));
+function totalUsers(){ return Object.keys(REGIONS).reduce((s,k)=> s + S.adoption[k]*REGIONS[k].pop, 0); }
+function euFrozen(){ return S.risk >= CFG.euFreezeRisk; }
+function eaOpen(){ return S.well >= CFG.eaWellGate; }
+function appName(){ return $("mapAppName").dataset.name || "Loop"; }
+function scrollTop(){ window.scrollTo({top:0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}); }
+function handleDebt(){ // null = solvent, "bailed" = one-time rescue, "dead" = game over
+  if(S.cash >= 0) return null;
+  if(!S.bailedOut){ S.bailedOut=true; S.cash+=500; S.well=clamp(S.well-6); S.hype=clamp(S.hype+4); return "bailed"; }
+  return "dead";
+}
+
+function pushNews(html){
+  S.news.unshift(html);
+  $("tickerItems").innerHTML = S.news.slice(0,14).map(n=>`<div class="item">${n}</div>`).join("");
+}
+
+function renderHUD(dl){
+  $("hUsers").textContent = fmtU(S.users);
+  $("hCash").textContent = fmt$(S.cash);
+  $("hHype").textContent = Math.round(S.hype);
+  $("hWell").textContent = Math.round(S.well);
+  $("hRisk").textContent = Math.round(S.risk)+"%";
+  $("riskStat").classList.toggle("hot", S.risk>=55);
+  const set=(id,v,suffix="")=>{const el=$(id); if(!dl){el.textContent="";return;} el.textContent=v>0?`+${Math.round(v)}${suffix}`:v<0?`${Math.round(v)}${suffix}`:""; el.className="d "+(v>0?"up":v<0?"down":"");};
+  if(dl){ set("dUsers",dl.users,"M"); set("dHype",dl.a); set("dWell",dl.w); set("dRisk",dl.risk);
+    const dp=$("dProfit"); dp.textContent=(S.profit>=0?"+":"")+fmt$(S.profit)+"/turn"; dp.className="d "+(S.profit>=0?"up":"down"); }
+  const c=[["c1",S.users>=CFG.win.users],["c2",S.profit>=CFG.win.profit],["c3",S.well>=CFG.win.well]];
+  c.forEach(([id,met])=>{const el=$(id); el.classList.toggle("met",met); el.querySelector(".tick").textContent=met?"✓":"○";});
+}
+
+function renderMap(){
+  Object.keys(REGIONS).forEach(k=>{
+    const a=S.adoption[k];
+    const el=$("rg-"+k), fill=adoptColor(a);
+    el.style.fill = fill;
+    el.style.setProperty("--glow", a>0.03 ? `drop-shadow(0 0 ${(2+a*9).toFixed(1)}px ${fill})` : "none");
+    const arc=$("arc-"+k);
+    if(arc) arc.style.opacity = a>=0.02 ? Math.min(0.55, a*1.4).toFixed(2) : 0;
+    const pct=$("pct-"+k);
+    const frozen = (k==="eu"&&euFrozen()) || (k==="ea"&&!eaOpen()&&k!==S.home);
+    pct.textContent = (k===S.home?"★ ":"") + Math.round(a*100)+"%" + (frozen?" ⚠":"");
+    pct.classList.toggle("frozen",frozen);
+  });
+  $("mapUsers").textContent = fmtU(S.users)+" users";
+  const rows = Object.keys(REGIONS).map(k=>{
+    const r=REGIONS[k], a=S.adoption[k];
+    const frozen=(k==="eu"&&euFrozen())||(k==="ea"&&!eaOpen()&&k!==S.home);
+    return `<div class="rrow ${frozen?'frozen':''}" title="${r.trait}"><span class="rn">${k===S.home?"🏠 ":""}${r.name}</span><span class="rbar"><i style="width:${Math.round(a/0.92*100)}%"></i></span><span class="rv">${fmtU(a*r.pop)}</span></div>`;
+  }).join("") + `<div class="rrow closed"><span class="rn">China · Russia · Iran</span><span class="rbar"><i style="width:0%"></i></span><span class="rv">closed 🔒</span></div>`;
+  $("regionRows").innerHTML = rows;
+}
+
+/* ================= SIMULATION ================= */
+function simulateTurn(){
+  const before = totalUsers();
+  const base = (S.hype*CFG.growHype + S.well*CFG.growWell);
+  let bestGain = {k:null, g:0};
+  const milestones = [];
+
+  Object.keys(REGIONS).forEach(k=>{
+    const r = REGIONS[k];
+    if(k==="eu" && euFrozen()) return;
+    let gripEff = clamp(r.grip + S.copies*CFG.copyPenalty - S.moat*CFG.moatBonus, 0.10, 0.93);
+    let g = base * r.open * (1-gripEff) * (0.92 - S.adoption[k]);
+    if(k==="ea" && !eaOpen() && k!==S.home) g *= 0.15;
+    if(k===S.home && S.turn<=3) g *= CFG.homeBoost;
+    const churn = S.adoption[k] * Math.max(0,(48-S.well)) * 0.0035;
+    const net = g - churn;
+    const pre = S.adoption[k];
+    S.adoption[k] = clamp(S.adoption[k] + net, 0, 0.92);
+    if(pre<0.25 && S.adoption[k]>=0.25) milestones.push({k, level:25});
+    if(pre<0.50 && S.adoption[k]>=0.50) milestones.push({k, level:50});
+    const gained = net * r.pop;
+    if(gained > bestGain.g) bestGain = {k, g:gained};
+  });
+
+  S.users = totalUsers();
+  const rev = S.users * CFG.arpu[S.arpuTier];
+  const cost = CFG.fixedCost + S.users * CFG.costPerUser;
+  S.profit = rev - cost;
+  S.cash += S.profit;
+  return {deltaUsers: S.users-before, bestGain, rev, cost, milestones};
+}
+
+function worldReaction(o){
+  const lines = [];
+  const name = appName();
+  if(o.tag==="dark" && !S.dpExplained){
+    S.dpExplained = true;
+    lines.push(`🕶️ <b>You just shipped a dark pattern</b> — design that uses brain science to make people do what the app wants, not what they want. That's the industry's real name for these tricks, and regulators around the world use it too.`);
+  }
+  if(S.turn===0){
+    lines.push(o.tag==="dark"
+      ? `🚨 <b>Your Trouble meter just went up.</b> Trouble is your chance of getting busted — inspectors run surprise audits when you least expect them.`
+      : `🚨 <b>Your Trouble meter stayed low.</b> Trouble is your chance of getting busted when inspectors run a surprise audit — fair play keeps it down.`);
+  }
+  if(o.tag==="dark"){
+    S.copies++;
+    lines.push(`🥊 <b>Copied in weeks!</b> TikTok and Instagram clone your new feature with 100× your budget. Your edge is gone — and beating them on their home turf just got harder.`);
+  } else if(o.tag==="ethical"){
+    S.moat++;
+    lines.push(`🛡️ <b>The giants can't copy this one</b> — it would cost them ad money. Your reputation as "the app that plays fair" grows.`);
+  } else {
+    lines.push(`⚖️ The giants shrug. Nobody writes headlines about "sensible".`);
+  }
+  if(euFrozen()) lines.push(`🇪🇺 <b>Europe blocks ${name}!</b> Your Trouble meter (${Math.round(S.risk)}%) is too high for Europe's strict internet laws. No growth there until Trouble drops below ${CFG.euFreezeRisk}.`);
+  if(S.home!=="ea"){
+    if(!eaOpen()) lines.push(`🗾 Japan &amp; South Korea are waiting to see if ${name} can be trusted — Wellbeing ${Math.round(S.well)}/${CFG.eaWellGate} needed.`);
+    else if(!S.eaOpened){ S.eaOpened = true; lines.push(`🗾 <b>Japan &amp; South Korea open up!</b> Your reputation arrived before you did.`); }
+  }
+  if(!S.movementFired && S.well>=70 && S.turn>=5){
+    S.movementFired = true;
+    Object.keys(S.adoption).forEach(k=>{ if(!(k==="eu"&&euFrozen())) S.adoption[k]=clamp(S.adoption[k]+0.03,0,0.92); });
+    lines.push(`📈 <b>#SwitchTo${name.replace(/\s/g,'')} goes viral!</b> People quitting other apps flood in everywhere.`);
+  }
+  if(S.well<40) lines.push(`📰 Bad press: researchers say ${name} is harming teens. Users are quitting.`);
+  return lines;
+}
+
+/* ================= FLOW ================= */
+function initMapFx(){
+  const svg = document.querySelector(".map-panel svg");
+  const NS = "http://www.w3.org/2000/svg";
+  const pos = k => { const t=$("pct-"+k); return {x:+t.getAttribute("x"), y:+t.getAttribute("y")}; };
+  const h = pos(S.home);
+  const g = document.createElementNS(NS,"g");
+  Object.keys(REGIONS).forEach(k=>{
+    if(k===S.home) return;
+    const p = pos(k);
+    const mx=(h.x+p.x)/2, my=Math.min(h.y,p.y)-55;
+    const path=document.createElementNS(NS,"path");
+    path.setAttribute("d",`M ${h.x} ${h.y-4} Q ${mx} ${my} ${p.x} ${p.y-4}`);
+    path.setAttribute("class","arc");
+    path.setAttribute("id","arc-"+k);
+    g.appendChild(path);
+  });
+  svg.insertBefore(g, svg.querySelector(".rlabel"));
+  const ping=document.createElementNS(NS,"circle");
+  ping.setAttribute("cx",h.x); ping.setAttribute("cy",h.y-4); ping.setAttribute("r","9");
+  ping.setAttribute("class","hq-ping");
+  svg.appendChild(ping);
+  const core=document.createElementNS(NS,"circle");
+  core.setAttribute("cx",h.x); core.setAttribute("cy",h.y-4); core.setAttribute("r","2.6");
+  core.setAttribute("class","hq-core");
+  svg.appendChild(core);
+}
+
+function showRegionInfo(k){
+  document.querySelectorAll(".region.selected").forEach(x=>x.classList.remove("selected"));
+  $("rg-"+k).classList.add("selected");
+  if($("mapModal").open){
+    document.querySelectorAll(".mmcard.sel").forEach(x=>x.classList.remove("sel"));
+    const card=$("mm-"+k);
+    if(card){
+      card.classList.add("sel");
+      card.scrollIntoView({block:"nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+    }
+    return;
+  }
+  const r = REGIONS[k], a = S.adoption[k];
+  const frozen = (k==="eu" && euFrozen()), waiting = (k==="ea" && !eaOpen() && S.home!=="ea");
+  $("regionInfo").style.display = "block";
+  $("regionInfo").innerHTML = `<b>${k===S.home?"🏠 ":""}${r.name}</b> · ${r.city}<br>${r.trait}<br><b>${fmtU(a*r.pop)}</b> users — ${Math.round(a*100)}% of ${fmtU(r.pop)} people${frozen?"<br>⚠ Blocked: Trouble too high for Europe's laws":""}${waiting?`<br>⚠ Waiting: needs Wellbeing ${CFG.eaWellGate}+`:""}`;
+}
+Object.keys(REGIONS).forEach(k=>{
+  const el = $("rg-"+k);
+  if(el) el.addEventListener("click", ()=>showRegionInfo(k));
+});
+
+/* ---- expand map ---- */
+function renderMmDetails(){
+  const live = Object.keys(REGIONS).filter(k=>S.adoption[k]*REGIONS[k].pop>=1).length;
+  let best=null;
+  Object.keys(REGIONS).forEach(k=>{const u=S.adoption[k]*REGIONS[k].pop; if(!best||u>best.u)best={k,u};});
+  $("mmSummary").innerHTML = `<b>${fmtU(S.users)}</b> users worldwide · live in <b>${live}</b> of 9 regions · biggest market: <b>${best.u>=1?REGIONS[best.k].name:"none yet"}</b>`;
+  $("mmDetails").innerHTML = Object.keys(REGIONS).map(k=>{
+    const r=REGIONS[k], a=S.adoption[k], fill=adoptColor(a);
+    const frozen=(k==="eu"&&euFrozen()), waiting=(k==="ea"&&!eaOpen()&&S.home!==k);
+    const status = frozen ? `⚠ Blocked — Trouble ${Math.round(S.risk)}% is over Europe's limit of ${CFG.euFreezeRisk}`
+      : waiting ? `⚠ Waiting — needs Wellbeing ${CFG.eaWellGate}+ (now ${Math.round(S.well)})`
+      : a*r.pop>=1 ? "Growing" : "Not launched yet";
+    return `<div class="mmcard" id="mm-${k}">${k===S.home?"🏠 ":""}<b>${r.name}</b> · ${r.city}<br><span class="mmstat">${r.trait}</span><div class="mmbar"><i style="width:${Math.round(a/0.92*100)}%;background:${fill}"></i></div><b>${fmtU(a*r.pop)}</b> users — ${Math.round(a*100)}% of ${fmtU(r.pop)} people · ${status}</div>`;
+  }).join("") + `<div class="mmcard">🔒 <b>China · Russia · Iran</b><br><span class="mmstat">Closed to outside social apps — a reminder that the open internet isn't universal.</span></div>`;
+}
+$("expandBtn").addEventListener("click", ()=>{
+  if($("mapModal").open) return;
+  const svg = document.querySelector(".map-panel svg");
+  if(svg) $("mmSvgHolder").appendChild(svg);
+  $("mmTitle").textContent = $("mapAppName").dataset.name ? appName()+" — world coverage" : "World coverage";
+  renderMmDetails();
+  $("mapModal").showModal();
+});
+$("mmClose").addEventListener("click", ()=>$("mapModal").close());
+$("mapModal").addEventListener("close", ()=>{
+  const svg=$("mmSvgHolder").querySelector("svg");
+  if(svg) document.querySelector(".map-panel").insertBefore(svg, document.querySelector(".maplegend"));
+});
+
+/* ---- celebrity posts ---- */
+const CELEBS=[
+  {av:"🎤", n:"Zaya Storm",  h:"@zayastorm · 89M followers"},
+  {av:"🎮", n:"Leo Vortex",  h:"@leovortex · 61M followers"},
+  {av:"🏀", n:"Coach Riq",   h:"@coachriq · 44M followers"},
+  {av:"✨", n:"DJ Nova",     h:"@djnova · 52M followers"},
+  {av:"🍜", n:"Mimi Chen",   h:"@mimieats · 38M followers"},
+];
+const CELEB_LINES=[
+  "okay everyone needs to get on {app} right now 😭🔥",
+  "obsessed with {app} rn. that's the post.",
+  "{app} is actually so calm?? no ads screaming at me. love.",
+  "just found {app} — where has this been all my life",
+  "me and the whole squad are on {app} now. catch up.",
+];
+let toastTimer=null;
+function celebPost(){
+  const launched = Object.keys(REGIONS).filter(k=>S.adoption[k]>0.002 && !(k==="eu"&&euFrozen()));
+  if(!launched.length) return 0;
+  const k = launched[Math.floor(Math.random()*launched.length)];
+  const bump = 1 + Math.random()*1.5;
+  S.adoption[k] = clamp(S.adoption[k] + bump/REGIONS[k].pop, 0, 0.92);
+  S.users = totalUsers();
+  const c = CELEBS[Math.floor(Math.random()*CELEBS.length)];
+  const line = CELEB_LINES[Math.floor(Math.random()*CELEB_LINES.length)].replace("{app}", appName());
+  const t = $("celebToast");
+  t.innerHTML = `<div class="ch"><span class="av">${c.av}</span><span class="cn">${c.n}<span>${c.h}</span></span></div>“${line}”<div class="gain">📈 +${bump.toFixed(1)}M signups in ${REGIONS[k].name}</div>`;
+  t.classList.remove("show"); void t.offsetWidth; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove("show"), 7000);
+  const el=$("rg-"+k); el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"),1700);
+  pushNews(`🎤 <b>${c.n}</b> posts about ${appName()} — +${bump.toFixed(1)}M signups in ${REGIONS[k].name}.`);
+  return bump;
+}
+
+$("startBtn").addEventListener("click", ()=>{
+  const n = $("appNameInput").value.replace(/[<>&"']/g,"").trim().slice(0,16) || "Loop";
+  $("mapAppName").dataset.name = n;
+  $("mapAppName").textContent = n+" around the world";
+  S.adoption[S.home] = 1.2 / REGIONS[S.home].pop;
+  initMapFx();
+  $("intro").classList.add("hidden");
+  $("hud").style.display="grid";
+  $("victory").style.display="flex";
+  $("regionList").style.display="block";
+  $("ticker").style.display="block";
+  S.users = totalUsers();
+  pushNews(`🚀 <b>${n} launches in ${REGIONS[S.home].city}.</b> Tech press: "Another app promising to be different. They always say that."`);
+  renderHUD(); renderMap();
+  showRound();
+});
+$("appNameInput").addEventListener("keydown", e=>{ if(e.key==="Enter") $("startBtn").click(); });
+
+function showRound(){
+  const r = ROUNDS[S.turn];
+  $("qtrPill").textContent = `Decision ${S.turn+1} of ${CFG.turns}`;
+  $("qEyebrow").textContent = `Decision ${S.turn+1}`;
+  $("qTitle").textContent = r.title;
+  $("qBody").textContent = r.body;
+  $("qQuote").innerHTML = `<b>${r.quote.who}</b>“${r.quote.text}”`;
+
+  const shuffled = r.opts.slice();
+  for(let i=shuffled.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]]; }
+  $("opts").innerHTML="";
+  shuffled.forEach(o=>{
+    const b=document.createElement("button");
+    b.className="opt";
+    b.innerHTML=`<div class="toprow"><div class="t">${o.t}</div></div>
+      <div class="d">${o.d}</div>`;
+    b.addEventListener("click",()=>choose(o));
+    $("opts").appendChild(b);
+  });
+
+  $("fbCard").classList.add("hidden");
+  $("auditCard").classList.add("hidden");
+  $("qCard").classList.remove("hidden");
+  scrollTop();
+}
+
+function choose(o){
+  S.hype = clamp(S.hype + o.fx.a);
+  S.well = clamp(S.well + o.fx.w);
+  const riskD = CFG.risk[o.tag];
+  S.risk = clamp(S.risk + riskD);
+  if(o.arpu) S.arpuTier = o.arpu;
+  if(o.cost) S.cash -= o.cost;
+
+  const reactLines = worldReaction(o);
+  const sim = simulateTurn();
+  sim.milestones.forEach(m=>{
+    const rn = REGIONS[m.k].name;
+    if(m.level===25){
+      reactLines.push(`📈 <b>${appName()} takes off in ${rn}!</b> 1 in 4 people there now use it.`);
+      pushNews(`📈 <b>${appName()}</b> passes 25% in ${rn}.`);
+    } else {
+      reactLines.push(`👑 <b>Half of ${rn} is now on ${appName()}.</b> The giants call emergency meetings.`);
+      pushNews(`👑 <b>${appName()}</b> becomes #1 in ${rn}.`);
+    }
+    const el=$("rg-"+m.k);
+    el.classList.add("flash");
+    setTimeout(()=>el.classList.remove("flash"), 1700);
+  });
+  if([1,3,5,7].includes(S.turn) && Math.random()*100 < 25 + S.hype/2){
+    sim.deltaUsers += celebPost();
+  }
+
+  S.log.push({choice:o.t, tag:o.tag, n:S.turn+1});
+  pushNews(`<b>${appName()}</b> ships "${o.t}". ${o.tag==="dark"?"Critics call it a dark pattern.":o.tag==="ethical"?"Design fans applaud.":"The world shrugs."}`);
+
+  renderHUD({users:sim.deltaUsers, a:o.fx.a, w:o.fx.w, risk:riskD});
+  renderMap();
+
+  const debt = handleDebt();
+  if(debt==="dead"){ earlyGameOver(); return; }
+  if(debt==="bailed"){
+    reactLines.push(`💸 <b>You ran out of money!</b> New investors rescue you with $500M — but they demand "growth at any cost". Wellbeing −6. There's no second rescue.`);
+    renderHUD();
+  }
+
+  $("fbTag").textContent = o.tag==="dark"?"Dark pattern":o.tag==="mid"?"Middle ground":"Fair play";
+  $("fbTag").className="fb-tag "+o.tag;
+  const riskCls=o.tag==="dark"?"risk-hi":o.tag==="mid"?"risk-md":"risk-lo";
+  $("fbChips").innerHTML = `<span class="pchip hype">🔥 Hype ${o.fx.a>=0?"+":""}${o.fx.a}</span>
+    <span class="pchip ${o.fx.w>=0?'well-up':'well-dn'}">💚 Wellbeing ${o.fx.w>=0?"+":""}${o.fx.w}</span>
+    <span class="pchip ${riskCls}">🚨 Trouble ${riskD>=0?"+":""}${riskD}</span>`;
+  $("fbTitle").textContent = o.t;
+  $("fbWorld").innerHTML = reactLines.map(l=>`<li>${l}</li>`).join("");
+  const bg = sim.bestGain.k ? ` Fastest growth: <b>${REGIONS[sim.bestGain.k].name}</b>.` : "";
+  $("fbFin").innerHTML = `You now have <b>${fmtU(S.users)}</b> users (${sim.deltaUsers>=0?"+":""}${fmtU(Math.abs(sim.deltaUsers))}). You ${S.profit>=0?"made":"lost"} <b style="color:${S.profit>=0?'var(--teal-ink)':'var(--red-ink)'}">${fmt$(Math.abs(S.profit))}</b> this turn.${bg}`;
+  $("fbPsych").textContent = o.psych;
+  $("fbReal").textContent = o.real;
+
+  $("qCard").classList.add("hidden");
+  $("fbCard").classList.remove("hidden");
+  scrollTop();
+}
+
+$("nextBtn").addEventListener("click", ()=>{
+  S.turn++;
+  if(CFG.auditsAfter.includes(S.turn)) showAudit(S.turn===CFG.auditsAfter[0]?"eu":"global");
+  else if(CFG.eventsAfter.includes(S.turn)) showComplication(S.turn===CFG.eventsAfter[0]?"celebrity":"breach");
+  else if(S.turn < ROUNDS.length) showRound();
+  else finish();
+});
+
+/* ---- audits ---- */
+let currentInterrupt=null;
+function prepInterruptCard(){
+  $("fbCard").classList.add("hidden");
+  $("diceN").textContent="--";
+  $("auditVerdict").className="audit-verdict"; $("auditVerdict").textContent="";
+  $("rollBtn").classList.remove("hidden"); $("rollBtn").disabled=false;
+  $("auditNextBtn").classList.add("hidden");
+  $("auditCard").classList.remove("hidden");
+  scrollTop();
+}
+function showComplication(kind){
+  const name=appName();
+  $("auditCard").classList.add("event-card");
+  $("auditEyebrow").textContent="🎲 Complication"; $("auditEyebrow").style.color="var(--amber-ink)";
+  $("qtrPill").textContent = "🎲 Complication!";
+  if(kind==="celebrity"){
+    const th = clamp(Math.round(S.hype), 15, 85);
+    currentInterrupt={type:"event", kind, th};
+    $("auditTitle").textContent = `A mega-celebrity opens ${name} live on stream 🎤`;
+    $("auditBody").innerHTML = `The world's biggest streamer just tried ${name} in front of 60 million viewers. Whether it explodes depends on the buzz you've already built. Your Hype is <b>${Math.round(S.hype)}</b> — roll <b>${th} or less</b> and ${name} goes globally viral.`;
+    $("diceCap").textContent = `Hype ${th} — viral if the roll is ${th} or less`;
+  } else {
+    const th = Math.min(75, 12 + (S.arpuTier==="dark"?28:S.arpuTier==="mid"?10:0) + S.log.filter(l=>l.tag==="dark").length*6);
+    currentInterrupt={type:"event", kind, th};
+    $("auditTitle").textContent = `Hackers claim they're inside ${name} 💀`;
+    $("auditBody").innerHTML = `A hacker group says it's found a way into your servers. How bad this gets depends on how much personal data you've been hoarding — data you never collected can't leak. Your exposure is <b>${th}%</b> — roll <b>${th} or less</b> and user data leaks worldwide.`;
+    $("diceCap").textContent = `Exposure ${th}% — data leaks if the roll is ${th} or less`;
+  }
+  prepInterruptCard();
+}
+function showAudit(kind){
+  currentInterrupt={type:"audit", kind};
+  $("auditCard").classList.remove("event-card");
+  $("auditEyebrow").textContent="⚠️ Surprise audit"; $("auditEyebrow").style.color="var(--red)";
+  $("qtrPill").textContent = "⚠️ Audit!";
+  $("auditTitle").textContent = kind==="eu"
+    ? `Europe's internet watchdogs inspect ${appName()}.`
+    : `The eSafety Commissioner leads a worldwide inspection of ${appName()}.`;
+  const fine = Math.round(S.risk*8);
+  $("auditBody").innerHTML = `Your Trouble meter is at <b>${Math.round(S.risk)}%</b> — that’s exactly your chance of getting busted. A number from 1–100 is about to be rolled: roll <b>${Math.round(S.risk)} or less</b> and you’re busted — fined <b>${fmt$(fine)}</b>, Wellbeing −6.${S.risk<30?" Your record is clean — pass and you earn <b>Wellbeing +5</b> and glowing headlines.":""}`;
+  $("diceCap").textContent=`Trouble ${Math.round(S.risk)}% — busted if the roll is ${Math.round(S.risk)} or less`;
+  prepInterruptCard();
+}
+$("rollBtn").addEventListener("click", ()=>{
+  $("rollBtn").disabled=true;
+  const final=Math.floor(Math.random()*100)+1;
+  let spins=0;
+  const t=setInterval(()=>{
+    spins++;
+    $("diceN").textContent=Math.floor(Math.random()*100)+1;
+    if(spins>=18){
+      clearInterval(t);
+      $("diceN").textContent=final;
+      const v=$("auditVerdict");
+      if(currentInterrupt.type==="audit"){
+        const caught = final <= S.risk;
+        if(caught){
+          const fine=Math.round(S.risk*8);
+          S.cash-=fine; S.well=clamp(S.well-6); S.risk=clamp(S.risk-15);
+          pushNews(`⚖️ <b>${appName()} fined ${fmt$(fine)}</b> after inspectors find manipulative design.`);
+          const debt = handleDebt();
+          if(debt==="dead"){ earlyGameOver(); return; }
+          v.className="audit-verdict fail";
+          v.innerHTML=`<b>Busted.</b> Rolled ${final}. ${appName()} is fined <b>${fmt$(fine)}</b>. Wellbeing −6. You're forced to clean up some tricks, so your Trouble meter drops too.${currentInterrupt.kind==="eu"?" Europe stays blocked until Trouble clears "+CFG.euFreezeRisk+".":""}${debt==="bailed"?` 💸 <b>The fine emptied your accounts!</b> New investors rescue you with $500M — but they demand "growth at any cost". Wellbeing −6. There's no second rescue.`:""}`;
+        } else {
+          v.className="audit-verdict pass";
+          if(S.risk<30){ S.well=clamp(S.well+5); v.innerHTML=`<b>Passed — with praise.</b> Rolled ${final}. Inspectors publicly call ${appName()} a model of safe design. <b>Wellbeing +5.</b>`; pushNews(`✅ Inspectors <b>praise ${appName()}</b> as a model of safe design.`);}
+          else { v.innerHTML=`<b>Got away with it… this time.</b> Rolled ${final}, above your Trouble meter. The file stays open.`; pushNews(`🔎 ${appName()} escapes the audit without penalty. Inspectors "will keep watching".`);}
+        }
+      } else if(currentInterrupt.kind==="celebrity"){
+        if(final <= currentInterrupt.th){
+          const open=Object.keys(REGIONS).filter(k=>!(k==="eu"&&euFrozen()));
+          const openPop=open.reduce((s,k)=>s+REGIONS[k].pop,0);
+          open.forEach(k=>{ S.adoption[k]=clamp(S.adoption[k]+20/openPop,0,0.92); });
+          S.users=totalUsers();
+          v.className="audit-verdict pass";
+          v.innerHTML=`<b>It blows up! 🌟</b> Rolled ${final}. The clip lands on every For You page on the internet — <b>+20M signups overnight</b>, all around the world.`;
+          pushNews(`🌟 <b>${appName()} goes viral</b> after a celebrity live-stream. +20M signups.`);
+        } else {
+          v.className="audit-verdict info";
+          v.innerHTML=`<b>It fizzles.</b> Rolled ${final} — a nice shout-out, but the internet moves on within the hour. No harm done. More buzz next time?`;
+          pushNews(`🎤 A celebrity tries ${appName()} on stream. Mild interest, quickly forgotten.`);
+        }
+      } else { // breach
+        if(final <= currentInterrupt.th){
+          S.cash-=180; S.well=clamp(S.well-7);
+          pushNews(`💀 <b>${appName()} hacked</b> — user data leaked. Cleanup and lawsuits cost $180M.`);
+          const debt = handleDebt();
+          if(debt==="dead"){ earlyGameOver(); return; }
+          v.className="audit-verdict fail";
+          v.innerHTML=`<b>Data leak.</b> Rolled ${final}. Everything you collected about your users is now on the dark web. Cleanup and lawsuits cost <b>$180M</b>, Wellbeing −7.${debt==="bailed"?` 💸 <b>The cleanup emptied your accounts!</b> New investors rescue you with $500M — but they demand "growth at any cost". Wellbeing −6. There's no second rescue.`:""}`;
+        } else if(currentInterrupt.th<=20){
+          S.well=clamp(S.well+4);
+          v.className="audit-verdict pass";
+          v.innerHTML=`<b>Nothing to steal.</b> Rolled ${final}. The hackers get in — and find you never collected anything personal. Privacy experts applaud. <b>Wellbeing +4.</b>`;
+          pushNews(`🛡️ Hackers break into ${appName()} — and find nothing worth stealing. Applause all round.`);
+        } else {
+          S.well=clamp(S.well+1);
+          v.className="audit-verdict info";
+          v.innerHTML=`<b>Patched just in time.</b> Rolled ${final}. Your engineers lock the doors before anything leaks. That was close.`;
+          pushNews(`🔧 ${appName()} patches a security hole before hackers get in.`);
+        }
+      }
+      renderHUD(); renderMap();
+      $("rollBtn").classList.add("hidden");
+      $("auditNextBtn").classList.remove("hidden");
+    }
+  },70);
+});
+$("auditNextBtn").addEventListener("click", ()=>{
+  $("auditCard").classList.add("hidden");
+  if(S.turn < ROUNDS.length) showRound();
+  else finish();
+});
+
+/* ---- endings ---- */
+function earlyGameOver(){
+  $("qCard").classList.add("hidden");$("fbCard").classList.add("hidden");$("auditCard").classList.add("hidden");
+  $("qtrPill").textContent="Game over";
+  $("verdict").className="verdict shutdown";
+  $("verdictTitle").textContent=`${appName()}: out of money`;
+  $("fUsers").textContent=fmtU(S.users); $("fProfit").textContent=fmt$(S.profit); $("fWell").textContent=Math.round(S.well);
+  $("verdictBody").textContent=`You ran out of money twice, and nobody would rescue you again. The giants didn't even notice you go. Where did the money leak — fines, low earnings, or growing too slowly?`;
+  fillLog(); $("results").classList.remove("hidden");
+  scrollTop();
+}
+
+function finish(){
+  $("qtrPill").textContent="The final report";
+  const name=appName();
+  const cUsers=S.users>=CFG.win.users, cProfit=S.profit>=CFG.win.profit, cWell=S.well>=CFG.win.well;
+  $("fUsers").textContent=fmtU(S.users);
+  $("fProfit").textContent=fmt$(S.profit);
+  $("fWell").textContent=Math.round(S.well);
+  const v=$("verdict"); let title,body;
+  if(cUsers&&cProfit&&cWell){
+    v.className="verdict proved";
+    title=`${name}: you proved it! 🌍`;
+    body=`${fmtU(S.users)} users, making money, Wellbeing at ${Math.round(S.well)} — fair AND profitable AND huge, all at once. The giants can't explain why they can't copy you… except that their whole business depends on the tricks you refused to use. Every boss who ever said "hooking people is the only way" now has to explain ${name}.`;
+  } else if(cUsers&&cProfit){
+    v.className="verdict empire";
+    title=`${name}: you built another attention trap`;
+    body=`Huge numbers, real money — and Wellbeing at ${Math.round(S.well)}. The world didn't need one more app like this; it already had five. Somewhere in your nine decisions is the exact moment you became the thing you set out to beat.`;
+  } else if(cWell&&cProfit){
+    v.className="verdict niche";
+    title=`${name}: small but beloved`;
+    body=`Profitable, healthy, and loved by its ${fmtU(S.users)} users — but you finished ${fmtU(CFG.win.users - S.users)} short of ${fmtU(CFG.win.users)}, and the giants still rule the world's attention. Call it half a win: you proved a fair app can survive, just not yet that it can win. Look at your blueprint below — which fair-play choices could you swap for honest-but-exciting ones to keep your Hype alive?`;
+  } else if(cWell&&cUsers){
+    v.className="verdict cashfire";
+    title=`${name}: everyone loves an app that's going broke`;
+    body=`${fmtU(S.users)} users, Wellbeing at ${Math.round(S.well)} — and you're losing ${fmt$(Math.abs(S.profit))} every turn. The giants are now offering to buy you, and they wouldn't keep it fair. A fair app that can't pay its bills isn't proof — it's a warning. Where should the money have come from?`;
+  } else {
+    v.className="verdict shutdown";
+    title=`${name}: didn't make it — this time`;
+    body=`Users ${fmtU(S.users)}, money ${fmt$(S.profit)}/turn, Wellbeing ${Math.round(S.well)} — the three targets didn't line up. The game is genuinely stacked against you. That's the point. What would you do differently from Decision 1?`;
+  }
+  $("verdictTitle").textContent=title;
+  $("verdictBody").textContent=body;
+  fillLog();
+  $("qCard").classList.add("hidden");$("fbCard").classList.add("hidden");$("auditCard").classList.add("hidden");
+  $("results").classList.remove("hidden");
+  scrollTop();
+}
+
+const AREAS=["The feed","Money","Notifications","Streaks","Likes","Endless content","Fake news","Privacy","Screen time"];
+function fillLog(){
+  $("choiceLog").innerHTML = S.log.map(l=>`<div class="log-row"><span class="log-dot ${l.tag}"></span><span class="log-area">${AREAS[l.n-1]||"Decision "+l.n}</span><span>${l.choice}</span><span class="log-tag ${l.tag}">${l.tag==="dark"?"dark pattern":l.tag==="mid"?"middle ground":"fair play"}</span></div>`).join("");
+}
+</script>
+</body>
+</html>
